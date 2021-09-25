@@ -26,7 +26,15 @@ Simply install python-mls from this repository or MELPA (TBA), and use `require`
 
 # Usage
 
-Using python-mls is as simple as entering the first multi-line statement at the (i)Python prompt, then editing as you would in a python buffer.  To send a multi-line statement, either enter two blank lines at the end, or use `S-Ret` or `M-Ret` at any position.  You can also break the current line into a multi-line command anywhere with `C-j`. 
+Using python-mls is as simple as entering the first multi-line statement at the (i)Python prompt, then editing as you would in a python buffer. 
+
+Special keys:
+
+- To send a multi-line statement, either enter two blank lines at the end, or use `S-Ret` or `M-Ret` at any position.  
+- `C-j` breaks the current line into a multi-line command anywhere with. 
+- `Up`/`Down` (or `C-p`/`C-n`) navigate history, or within multi-line statements.  Hold shift to skip multi-line statements. 
+
+See below for tips in importing other python navigation commands for use after the prompt with python-mls. 
 
 # Config
 
