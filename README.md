@@ -5,14 +5,6 @@ Python-MLS (multi-line shell) is an Emacs minor mode which enables working direc
 &nbsp;&nbsp;&nbsp;&nbsp;   ![python-mls_crop](https://user-images.githubusercontent.com/93749/134784188-7ac9ee9d-8e29-4c7f-82d7-2881e96d4bd2.gif)
 
 
-# Installation
-
-Simply install python-mls from this repository or MELPA (TBA), and use `require` or `use-package` to load it.  It automatically enables itself in your python inferior shell, which you can start however you normally do (e.g. `M-x run-python`).  
-
-# Usage
-
-Using python-mls is as simple as entering the first multi-line statement at the (i)Python prompt, then editing as you would in a python buffer.  To send a multi-line statement, either enter two blank lines at the end, or use `S-Ret` or `M-Ret` at any position.  You can also break the current line into a multi-line command anywhere with `C-j`. 
-
 # Features:
 
 - Works with both python and ipython.
@@ -28,6 +20,18 @@ Using python-mls is as simple as entering the first multi-line statement at the 
 - Directly kill/yank multi-line code blocks to & from Python
   buffers.
   
+# Installation
+
+Simply install python-mls from this repository or MELPA (TBA), and use `require` or `use-package` to load it.  It automatically enables itself in your python inferior shell, which you can start however you normally do (e.g. `M-x run-python`).  
+
+# Usage
+
+Using python-mls is as simple as entering the first multi-line statement at the (i)Python prompt, then editing as you would in a python buffer.  To send a multi-line statement, either enter two blank lines at the end, or use `S-Ret` or `M-Ret` at any position.  You can also break the current line into a multi-line command anywhere with `C-j`. 
+
+# Config
+
+A few options are available for configuration, including saving command history, and killing the window after the process quits.  To configure, use `M-x customize-group [Ret] python-mls-command-setup`. 
+
 # FAQs:
 
 - **How does Python-MLS work**: It looks for the normal continuation prompt in (i)python's output, and if found, quietly interrupts the process, removes the partial command from the history, and starts a "native" emacs continued statement. On continued lines it computes and uses a _line prefix_ computed to match your prompt, like `  ...`.  Prefixes are only _decoration_, and are not in the text, so it is easy to select and operate on the text like normal. 
