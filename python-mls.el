@@ -43,7 +43,7 @@
 ;;; Code:
 (require 'python)
 
-(defgroup python-mls-command-setup nil
+(defgroup python-mls nil
   "Setup for command parameters of the Python Multi-Line Shell."
   :prefix "Multi-line Shell (MLS)"
   :group 'python)
@@ -52,7 +52,7 @@
   "Non-nil means preserve command history between sessions.
 The file `python-mls-command-history-file' is used to save and restore
 the history."
-  :group 'python-mls-command-setup
+  :group 'python-mls
   :type 'boolean)
 
 (defcustom python-mls-command-history-file "pyhist"
@@ -62,18 +62,18 @@ In order to change the size of the history, see the variable
 The history is only saved if the variable `python-mls-save-command-history'
 is non-nil.  Unless it is an absolute filepath, it saved under 
 `user-emacs-directory'."
-  :group 'python-mls-command-setup
+  :group 'python-mls
   :type 'file)
 
 (defcustom python-mls-after-prompt-hook '()
   "Hook run each time a new input prompt is found."
   :type 'hook
   :local t
-  :group 'python-mls-command-setup)
+  :group 'python-mls)
 
 (defcustom python-mls-kill-buffer-process-quit nil
   "Whether to kill the python buffer when the process completes."
-  :group 'python-mls-command-setup
+  :group 'python-mls
   :type 'boolean)
 
 (defcustom python-mls-import-python-nav-command-list
@@ -84,7 +84,7 @@ is non-nil.  Unless it is an absolute filepath, it saved under
 Limited to region after prompt.  Binds in the inferior shell with
 the same key or (if provided as a cons cell (function . key) to
 KEY.  "
-  :group 'python-mls-command-setup
+  :group 'python-mls
   :type '(repeat (choice function (cons function key-sequence))))
 
 (defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.:? ")
@@ -118,17 +118,6 @@ don't count."
     (python-indent-line-function))
   (if (= (line-beginning-position) (point-max))
       (python-mls-invisible-newline)))
-
-;; (defun python-mls-complete-or-indent ()
-;;   "Handle continuation lines for indent or complete.
-;; In continuation lines, Tab narrows region and (re)-indents line.
-;; In non-continuation lines, functions the same as
-;; python-shell-completion-complete-or-indent.  M-Tab can be used
-;; for completion in continuation input."
-;;   (interactive)
-;;   (if (python-mls-in-continuation)
-;;       (indent-for-tab-command)
-;;     (python-shell-completion-complete-or-indent)))
 
 (defun python-mls-line-empty-p (&optional line-off pos)
   (save-excursion
