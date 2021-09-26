@@ -231,7 +231,7 @@ end of the buffer."
 (defvar-local python-mls-in-pdb nil
   "Whether we are in (i)PDB, according to the prompt.")
 
-(defvar python-mls-mode)
+;;;###autoload
 (defun python-mls-check-prompt (&rest _args)
   "Check for continuation prompt and fix up comint to handle.
 Multi-line statements we handle directly.  But if a single
@@ -473,7 +473,8 @@ Kill buffer when process completes."
 (advice-add #'comint-output-filter :after #'python-mls-check-prompt)
 
 ;;;###autoload
-(add-hook 'python-mode-hook 'python-mls--python-setup)
+(add-hook 'python-mode-hook 'python-mls-mode)
 
 (provide 'python-mls)
 
+;;; python-mls.el ends here
