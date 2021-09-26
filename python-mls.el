@@ -76,6 +76,17 @@ is non-nil.  Unless it is an absolute filepath, it saved under
   :group 'python-mls-command-setup
   :type 'boolean)
 
+(defcustom python-mls-import-python-nav-command-list
+  '(python-nav-backward-block
+    python-nav-forward-block
+    python-nav-backward-up-list)
+  "Python mode nav commands to import.
+Limited to region after prompt.  Binds in the inferior shell with
+the same key or (if provided as a cons cell (function . key) to
+KEY.  "
+  :group 'python-mls-command-setup
+  :type '(repeat (choice function (cons function key-sequence))))
+
 (defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.:? ")
 (defun python-mls-in-continuation (&optional trim-trailing-ws)
   "Test whether we are in an continued input statement.
@@ -381,6 +392,15 @@ Kill buffer when process completes."
 	(if python-mls-kill-buffer-process-quit
 	    (kill-buffer buf))))))
 
+(defun python-mls-narrowed-command (command)
+  "Call a command, narrowing to region after prompt."
+  (message "Narrowing Command: %S" command)
+  (lambda (&rest r)
+    (interactive)
+    (save-restriction
+      (narrow-to-region (cdr-safe comint-last-prompt) (point-max))
+      (apply command r))))
+
 (defvar python-mls-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [(meta return)] #'python-mls-send-input)
@@ -390,11 +410,17 @@ Kill buffer when process completes."
     (define-key map [remap comint-send-input]
       #'python-mls-continue-or-send-input)
     (define-key map [remap python-shell-completion-complete-or-indent]
-      #'indent-for-tab-command) ; restore this, will use 'complete
-;      #'python-mls-complete-or-indent)
+      #'indent-for-tab-command) ; restore
     (define-key map [(meta up)] #'comint-previous-matching-input-from-input)
     (define-key map [(meta down)] #'comint-next-matching-input-from-input)
     (define-key map (kbd "C-d") #'python-mls-delete-or-eof)
+    (cl-loop for cmd in python-mls-import-python-nav-command-list
+	     do
+	     (if (consp cmd)
+		 (define-key map (cdr cmd)
+		   (python-mls-narrowed-command (consp cmd)))
+	       (substitute-key-definition
+		cmd (python-mls-narrowed-command cmd) map python-mode-map)))
     map))
 
 (defun python-mls-setup ()
