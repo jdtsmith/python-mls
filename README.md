@@ -28,43 +28,31 @@ Simply install python-mls from this repository or MELPA (TBA), and use `require`
 
 Using python-mls is as simple as entering the first multi-line statement at the (i)Python prompt, then editing as you would in a python buffer. 
 
-Special keys:
+# Keys:
 
-- To send a multi-line statement, either enter two blank lines at the end, or use `S-Ret` or `M-Ret` at any position.  
-- `C-j` breaks the current line into a multi-line command anywhere with. 
-- `Up`/`Down` (or `C-p`/`C-n`) navigate history, or within multi-line statements.  Hold shift to skip multi-line statements. 
-
-See below for tips in importing other python navigation commands for use after the prompt with python-mls. 
+- `S-Ret` or `M-Ret`: send a multi-line statement, or enter two blank lines at end of statement.
+- `C-j`: break the current line into a multi-line command anywhere with. 
+- `Up`/`Down` (or `C-p`/`C-n`): navigate history, or within multi-line statements. Hold shift to skip past multi-line statements in history.
+- `M-a`/`M-e`/`C-M-u`: (by default) python-nav bindings for backward-, forward-block and up-list are brought over from python mode.  See `python-mls-import-python-nav-command-list` to add more. 
+- `C-d`: send EOF if at prompt at end.
 
 # Config
 
-A few options are available for configuration, including saving command history, and killing the window after the process quits.  To configure, use `M-x customize-group [Ret] python-mls-command-setup`. 
+A few options are available for configuration, including whether and where to save multi-line command history, whether to kill the window after the process quits, and which key bindings to bring over from python-mode.  To configure, use `M-x customize-group [Ret] python-mls`. 
 
 # FAQs:
 
 - **How does Python-MLS work**: It looks for the normal continuation prompt in (i)python's output, and if found, quietly interrupts the process, removes the partial command from the history, and starts a "native" emacs continued statement. On continued lines it computes and uses a _line prefix_ computed to match your prompt, like `  ...`.  Prefixes are only _decoration_, and are not in the text, so it is easy to select and operate on the text like normal. 
-- **How else can you make a multi-line statement?** You can break any line at any time with `C-j`.  So a multi line statement like the following is perfectly allowable:
+- **How else can you make a multi-line statement?** You can break any line at any time with `C-j`.  So a multi line-statement like the following is perfectly allowable:
   ```
   >>> x=1[C-j]
   ... y=2[C-j]
   ... z=3[S-Ret]
   ```
-- **Copy and paste?**: Just try it.  Python-mls configures python-mode to strip out the "..." line prefixes on yank.  It adds them back in as needed.
+- **Copy and paste?**: Just try it.  Python-mls configures python-mode to strip out the "..." line prefixes on yank, and it adds them back in as needed.
 - **How does this differ from iPython's multi-line capability?** In a few ways: iPython evaluates each line of a multi-line shell and checks for syntax errors etc., as they are entered.  Python-mls lets you edit and then sends the full block en masse at the end.  Python-mls lets you move right across lines using normal emacs movement (even python navigation commands), whereas iPython treats each line as a separate block you can access via up/down arrow only. 
 - **How do you skip over entire multi-line statements in history without moving all the way through them?** Try holding Shift with the arrows: `S-up`,`S-down` (or `C-S-n/p`).
-- **Why does python-mls touch fontification?** By default, python-mode copies text back and forth from the inferior shell to a hidden Python buffer, and fully refontifies it _after every keypress_. With short single-line statements this isn't a problem, but with long multi-line input this becomes highly inefficient. Python-mls replaces this with a special fontification function which both adds the continuation line prefixes and performs default python-mode fontification all in  one efficient pass, directly in the shell buffer itself (after the prompt only).  This also saves the creation of random fontification buffers.
+- **Why does python-mls handle fontification?** By default, python-mode copies text back and forth from the inferior shell to a hidden Python buffer, and fully refontifies there it _after every keypress_. With short, single-line statements this isn't a problem, but with long multi-line input this becomes highly inefficient. Python-mls replaces this with a special in-buffer fontification function which both adds the continuation line prefixes (e.g. ` ...`) and performs default python-mode fontification, all in one efficient pass.  This also saves the creation of random fontification buffers.
 - **Any other useful tips?**:  
    - Get to know the useful commands provided by `comint` (which most Emacs inferior shells use): `C-c C-u` `comint-kill-input` `C-c C-o` `comint-kill-output` `C-c M-o` `comint-clear-buffer`, and more.
-   - Python-mls does not bind any keyboard shortcuts for python navigation or editing. Feel free to bind your own. One small but improvement would be to limit them to act only on text after the prompt. An easy way to arrange this is like:
- ```elisp
- (defun my/narrowed-command (command)
-  (lambda (&rest r)
-    (interactive)
-    (save-restriction
-      (narrow-to-region (cdr-safe comint-last-prompt) (point-max))
-      (apply command r))))
-
- (bind-key [remap backward-sentence]
-	  (my/narrowed-command #'python-nav-backward-block)
-	  'inferior-python-mode-map)
- ```
+   - Python-mls binds a few keyboard shortcuts for python navigation for use after the prompt. See `python-mls-import-python-nav-command-list` to add more. 
