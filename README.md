@@ -42,7 +42,7 @@ A few options are available for configuration, including whether and where to sa
 
 # FAQs:
 
-- **How does Python-MLS work**: It looks for the normal continuation prompt in (i)python's output, and if found, quietly interrupts the process, removes the partial command from the history, and starts a "native" emacs continued statement. On continued lines it computes and uses a _line prefix_ computed to match your prompt, like `  ...`.  Prefixes are only _decoration_, and are not in the text, so it is easy to select and operate on the text like normal. 
+- **How does Python-MLS work?**: It looks for the normal continuation prompt in (i)python's output, and if found, quietly interrupts the process, removes the partial command from the history, and starts a "native" emacs continued statement. On continued lines it computes and uses a _line prefix_ computed to match your prompt, like `  ...`.  Prefixes are only _decoration_, and are not in the text, so it is easy to select and operate on the text like normal. 
 - **How else can you make a multi-line statement?** You can break any line at any time with `C-j`.  So a multi line-statement like the following is perfectly allowable:
   ```
   >>> x=1[C-j]
