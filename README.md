@@ -28,7 +28,7 @@ Simply install python-mls from this repository or MELPA (TBA), and use `require`
 
 Using python-mls is as simple as entering the first multi-line statement at the (i)Python prompt, then editing as you would in a python buffer.  Hit `S-Ret` or enter two final blank lines to execute. 
 
-# Keys:
+# Keys
 
 - `S-Ret` or `M-Ret`: send a multi-line statement, or enter two blank lines at end of statement.
 - `C-j`: break the current line into a multi-line command anywhere with. 
@@ -40,7 +40,7 @@ Using python-mls is as simple as entering the first multi-line statement at the 
 
 A few options are available for configuration, including whether and where to save multi-line command history, whether to kill the window after the process quits, and which navigation commands to bring over from python-mode.  To configure, use `M-x customize-group [Ret] python-mls`. 
 
-# FAQs:
+# FAQs
 
 - **How does Python-MLS work?**: It looks for the normal continuation prompt in (i)python's output, and if found, quietly interrupts the process, removes the partial command from the history, and starts a "native" emacs continued statement. On continued lines it computes and uses a _line prefix_ computed to match your prompt, like `  ...`.  Prefixes are only _decoration_, and are not in the text, so it is easy to select and operate on the text like normal. 
 - **How else can you make a multi-line statement?** You can break any line at any time with `C-j`.  So a multi line-statement like the following is perfectly allowable:
