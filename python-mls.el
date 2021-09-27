@@ -488,7 +488,7 @@ Kill buffer when process completes."
 (advice-add #'comint-output-filter :after #'python-mls-check-prompt)
 
 ;;;###autoload
-(add-hook 'python-mode-hook 'python-mls-mode)
+(add-hook 'python-mode-hook 'python-mls--python-setup)
 
 (provide 'python-mls)
 
