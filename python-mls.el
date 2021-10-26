@@ -137,10 +137,12 @@ Default is file based load/exec/command for python, or, if interpreter matches i
 (defun python-mls-send-input ()
   "Strip space and newlines from end of input and send."
   (interactive)
-  (let ((comint-input-sender
+  (let* ((orig-sender comint-input-sender)
+	(comint-input-sender
 	 (if (python-mls-in-continuation 'trim)
 	     python-mls-send-multiline-input
-	   #'comint-simple-send)))
+	   orig-sender)))
+    (setq python-mls--check-prompt t)
     (comint-send-input)))
 
 (defun python-mls-get-old-input ()
@@ -234,67 +236,70 @@ end of the buffer."
   "Current computed continuation prompt.")
 (defvar python-mls-old-prompt nil
   "Last prompt before recent send.")
-(defvar-local python-mls-disable-check-prompt nil)
-
 (defvar-local python-mls-in-pdb nil
   "Whether we are in (i)PDB, according to the prompt.")
 
+(defvar-local python-mls--check-prompt t) ;; start checking by default
+
 ;;;###autoload
-(defun python-mls-check-prompt (&rest _args)
-  "Check for continuation prompt and fix up comint to handle.
+(defun python-mls-check-prompt (output)
+  "Check for prompt, after input is sent.
+If a continuation prompt is found, fix up comint to handle it.
 Multi-line statements we handle directly.  But if a single
 command sent to (i)Python is the start of multi-line statment,
 the process will return a continuation prompt.  We remove it,
 sanitize the history, and then bring the last input forward to
-continue.  Added as advice for comint-output-filter."
-  (if (bound-and-true-p python-mls-mode)
-      (with-current-buffer (or (python-shell-get-buffer)
-			       (current-buffer))
-	(if (and python-mls-mode comint-last-prompt
-		 (not python-mls-disable-check-prompt))
-	    (let* ((old-end (cdr-safe python-mls-old-prompt))
-		   (beg (car comint-last-prompt))
-		   (end (cdr comint-last-prompt))
-		   (prompt (buffer-substring-no-properties beg end))
-		   (python-mls-disable-check-prompt t)
-		   (inhibit-read-only t))
-	      (cond
-	       ((and old-end
-		     (marker-position old-end)
-		     (string-match-p python-mls-continuation-prompt-regexp
-				     prompt))
-					;(message "FOUND PROMPT: %s" prompt)
-		(python-mls-interrupt-quietly); re-enters
-		(let* ((text (buffer-substring-no-properties old-end beg)))
-		  ;;(message "Multiline prompt with %s" comint-last-prompt)
-		  (delete-region old-end end) ;out with the old
-		  (goto-char end)
-		  (insert text)
-		  ;;(save-excursion (python-mls-invisible-newline))
-		  (funcall indent-line-function)
-		  (if (and comint-input-ring
-			   (not (ring-empty-p comint-input-ring)))
-		      (ring-remove comint-input-ring 0))))
-	       
-	       ((and
-		 (or (not old-end) (not (marker-position old-end)) (> end old-end))
-		 (string-match-p python-shell--prompt-calculated-input-regexp
-				 prompt))
-					;(message "Normal prompt with %s" comint-last-prompt)
-		(setq python-mls-old-prompt comint-last-prompt)
-		(setq python-mls-in-pdb (string-match-p python-shell-prompt-pdb-regexp prompt))
-		(add-text-properties beg (1- end) ; make cursor skip
-				     '(cursor-intangible t 
-							 rear-nonsticky 
-							 (field inhibit-line-move-field-capture 
-								read-only font-lock-face)))
-		;;(goto-char end)
-		;; (unless (looking-at "[\r\n]")
-		;;   (save-excursion (python-mls-invisible-newline)))
-		(python-mls-compute-continuation-prompt prompt)
-		(unwind-protect
-		    (run-hooks 'python-mls-after-prompt-hook)
-		  (setq python-mls-disable-check-prompt nil)))))))))
+continue.  Runs the hook python-mls-after-prompt-hook after a
+normal prompt is detected."
+  (when python-mls--check-prompt
+    (let* ((python-mls--check-prompt nil) ; don't re-enter
+	   (process (get-buffer-process (current-buffer)))
+	   (pmark (process-mark process)))
+      (goto-char pmark)
+      (goto-char (line-beginning-position))
+      (cond
+	 ;; Continuation prompt: comint performs input echo deletion
+	 ;; in comint-send-string, which implicitly calls this filter
+	 ;; function while waiting for echoed input.  But
+	 ;; echo-detection/deletion must run _first_ before our
+	 ;; continuation prompt deletion (which itself would delete
+	 ;; the echoed input).  Since comint-send-input calls us
+	 ;; finally with an empty string, if process-echoes is set,
+	 ;; check at that time.
+       ((and (or (not comint-process-echoes) (string-empty-p output))
+	     (looking-at python-mls-continuation-prompt-regexp))
+	(let* ((start (marker-position comint-last-input-start))
+	       (input (buffer-substring-no-properties
+		       start
+		       comint-last-input-end))
+	       (inhibit-read-only t))
+	  (python-mls-interrupt-quietly) ; re-enters
+	  (delete-region start pmark) ;out with the old
+	  (goto-char pmark)
+	  (insert input)
+	  (funcall indent-line-function)
+	  (if (and comint-input-ring
+		   (not (ring-empty-p comint-input-ring)))
+	      (ring-remove comint-input-ring 0))
+	  (setq python-mls--check-prompt nil)))
+	 
+       ;; Normal prompt
+       ((looking-at python-shell--prompt-calculated-input-regexp)
+	(let ((prompt (match-string 0)))
+	  (setq python-mls-in-pdb (string-match-p python-shell-prompt-pdb-regexp
+						  prompt))
+	  (add-text-properties
+	   (1- pmark) (point-at-bol) ; make cursor skip
+	   '(cursor-intangible t 
+			       rear-nonsticky 
+			       (field inhibit-line-move-field-capture 
+				      read-only font-lock-face)))
+	  (python-mls-compute-continuation-prompt prompt)
+	  (setq python-mls--check-prompt nil)
+	  (run-with-idle-timer
+	   0 nil
+	   (lambda () ;; These want to have comint-last-prompt set
+	     (run-hooks 'python-mls-after-prompt-hook)))))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation."
@@ -387,7 +392,8 @@ Kill buffer when process completes."
 	(goto-char (point-max))
 	(insert (format "\n\n  Process %s %s" process event))
 	(if python-mls-kill-buffer-process-quit
-	    (kill-buffer buf))))))
+	    (kill-buffer buf)
+	  (setq python-mls--check-prompt t))))))
 
 (defun python-mls-narrowed-command (command)
   "Call a command, narrowing to region after prompt."
@@ -459,6 +465,7 @@ Kill buffer when process completes."
 	      comint-history-isearch 'dwim)
   (add-hook 'comint-input-filter-functions
 	    #'python-mls--strip-input-history-properties nil t)
+  (add-hook 'comint-output-filter-functions #'python-mls-check-prompt)
   (cursor-intangible-mode 1)
 
   ;; Shift up/C-p: skips blocks
@@ -488,12 +495,6 @@ Kill buffer when process completes."
 
 ;;;###autoload
 (add-hook 'inferior-python-mode-hook 'python-mls-mode)
-
-;; prompt & input
-;; We cannot use a normal comint-output-filter-function because
-;; comint does not update comint-last-prompt until _after_ running hooks.
-;;;###autoload
-(advice-add #'comint-output-filter :after #'python-mls-check-prompt)
 
 ;;;###autoload
 (add-hook 'python-mode-hook 'python-mls--python-setup)
