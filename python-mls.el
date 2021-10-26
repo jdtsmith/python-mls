@@ -201,11 +201,19 @@ Omits extra newlines at end, and preserves (some) text properties."
 	  (process-send-eof))
       (delete-char arg))))
 
+(defun python-mls-interrupt ()
+  (interrupt-process nil comint-ptyp))
+
+(defvar-local python-mls-interrupt-process-function
+  #'python-mls-interrupt
+  "Function to interrupt the sub-job")
+
 (defun python-mls-interrupt-quietly ()
   "Interrupt the python process and bury any output."
   (let ((comint-preoutput-filter-functions '(python-shell-output-filter))
         (python-shell-output-filter-in-progress t))
-    (interrupt-process) ;; or better, comint-interrupt-subjob?
+    (setq python-shell-output-filter-buffer nil)
+    (funcall python-mls-interrupt-process-function)
     (while python-shell-output-filter-in-progress
       (accept-process-output))
     (setq python-shell-output-filter-buffer nil)))
