@@ -249,8 +249,8 @@ Multi-line statements we handle directly.  But if a single
 command sent to (i)Python is the start of multi-line statment,
 the process will return a continuation prompt.  We remove it,
 sanitize the history, and then bring the last input forward to
-continue.  Runs the hook python-mls-after-prompt-hook after a
-normal prompt is detected."
+continue.  Runs the hook python-mls-after-prompt-hook in idle
+time after a normal prompt is detected."
   (when python-mls--check-prompt
     (let* ((python-mls--check-prompt nil) ; don't re-enter
 	   (process (get-buffer-process (current-buffer)))
@@ -288,12 +288,12 @@ normal prompt is detected."
 	(let ((prompt (match-string 0)))
 	  (setq python-mls-in-pdb (string-match-p python-shell-prompt-pdb-regexp
 						  prompt))
-	  (add-text-properties
-	   (1- pmark) (point-at-bol) ; make cursor skip
-	   '(cursor-intangible t 
-			       rear-nonsticky 
-			       (field inhibit-line-move-field-capture 
-				      read-only font-lock-face)))
+	  (add-text-properties (1- pmark) (point-at-bol)
+			       '(cursor-intangible
+				 t  ; make normal cursor intangible
+				 rear-nonsticky 
+				 (field inhibit-line-move-field-capture 
+					read-only font-lock-face)))
 	  (python-mls-compute-continuation-prompt prompt)
 	  (setq python-mls--check-prompt nil)
 	  (run-with-idle-timer
