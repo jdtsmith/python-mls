@@ -446,7 +446,8 @@ Kill buffer when process completes."
   (setq-local comint-history-isearch 'dwim)
   
   ;; font-lock handling
-  (python-shell-font-lock-turn-off) ;We'll do in-buffer font-lock ourselves!
+  (if (derived-mode-p 'inferior-python-mode)
+      (python-shell-font-lock-turn-off)) ;We'll do in-buffer font-lock ourselves!
   (setq-local 
    font-lock-keywords-only nil
    syntax-propertize-function python-syntax-propertize-function
