@@ -501,13 +501,15 @@ Kill buffer when PROCESS completes on EVENT."
 			   (field inhibit-line-move-field-capture
 				  read-only font-lock-face))))))))
 
+;;;###autoload
 (define-minor-mode python-mls-mode
   "Minor mode in inferior (i)python buffers for editing multi-line statements."
   :keymap python-mls-mode-map
   (if python-mls-mode
       (python-mls-setup)))
 
-(defun python-mls--python-setup ()
+;;;###autoload
+(defun python-mls-python-setup ()
   "Set `python-mode' buffers to exclude `line-prefix' on yank."
   (make-local-variable 'yank-excluded-properties) ; for python-mls
   (cl-pushnew 'line-prefix yank-excluded-properties))
@@ -516,7 +518,7 @@ Kill buffer when PROCESS completes on EVENT."
 (add-hook 'inferior-python-mode-hook 'python-mls-mode)
 
 ;;;###autoload
-(add-hook 'python-mode-hook 'python-mls--python-setup)
+(add-hook 'python-mode-hook 'python-mls-python-setup)
 
 (provide 'python-mls)
 
