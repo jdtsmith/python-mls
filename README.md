@@ -30,11 +30,11 @@ Using python-mls is as simple as entering the first multi-line statement at the 
 
 # Keys
 
-- `S-Ret` or `M-Ret`: send a multi-line statement from any where within it.
--  Enter two blank lines at end of statement: send the multi-line statement.
-- `C-j`: break the current line into a multi-line command anywhere. 
-- `Up`/`Down` (or `C-p`/`C-n`): navigate history, or _within_ multi-line statements. 
--  `S-Up`/`S-Down` (or `C-S-p`/`C-S-n`): Hold shift to skip through multi-line statements in command history.
+- `S-Ret` or `M-Ret`: send a multi-line statement from anywhere within it.
+-  Enter two blank lines: send the multi-line statement.
+- `C-j`: break an initial line into a multi-line command anywhere. 
+- `Up`/`Down` (or `C-p`/`C-n`): navigate history, or move _within_ multi-line statements. 
+-  `S-Up`/`S-Down` (or `C-S-p`/`C-S-n`): skip through multi-line statements in command history.
 - `M-a`/`M-e`/`C-M-u`: (by default) python-nav bindings for backward-, forward-block and up-list are brought over from python mode.  See `python-mls-import-python-nav-command-list` to add more. 
 - `C-d`: send EOF, if at a prompt at the end of the buffer. 
 
@@ -44,7 +44,7 @@ A few options are available for configuration, including whether and where to sa
 
 # FAQs
 
-- **How does Python-MLS work?** It looks for the normal continuation prompt in (i)python's output, and if found, quietly interrupts the process, removes the partial command from the history, and starts a "native" emacs continued statement. On continued lines it computes and uses a _line prefix_ computed to match your prompt, like `  ...`.  Importantly, the prefixes added are only _decoration_, and are not in the actual text, so it is easy to select, kill, yank and operate on it just as in a normal buffer.
+- **How does Python-MLS work?** It looks for the normal continuation prompt (e.g. ` ...`) in (i)Python's output, and if found, quietly interrupts the process, removes the partial command from the history, and starts a "native" emacs continued statement. On continued lines, it uses a computed _line prefix_ which matches your prompt.  Importantly, the prefixes added are only _decoration_, and are not in the actual text, so it is easy to select, navigate, kill, yank and operate on it just as in a normal python-mode buffer.
 
 - **How else can you make a multi-line statement?** You can break any line at any time with `C-j`.  So a multi line-statement like the following is perfectly allowable:
   ```
@@ -53,13 +53,13 @@ A few options are available for configuration, including whether and where to sa
   ... z=3[S-Ret]
   ```
 
-- **Copy and paste?** Just try it.  Python-mls configures python-mode to strip out the `...` line prefixes on yank, and it adds them back in automatically when copying text from a python buffer to the shell.
+- **Copy and paste?** Just try it.  Python-mls configures python-mode to strip out the `...` decorative line prefixes on yank, and it adds them back in automatically when copying text from elsewhere into the shell.
 
-- **How does this differ from iPython's native multi-line input capability?** iPython's multi-line input definitely inspired python-mls, but it differs in a few ways: iPython evaluates each line of a multi-line statement as it is inputed, and checks for syntax errors line by line.  Python-mls lets you edit and then sends the complete block _en masse_ at the end, so any errors will appear at that point.  Python-mls lets you move right across lines using normal emacs movement (even python navigation commands), whereas iPython treats each line as a separate entity you can access via up/down arrow _only_.
+- **How does this differ from iPython's native multi-line input capability?** iPython's multi-line input was a source of inspiration for python-mls, but it differs in a few ways: iPython evaluates each line of a multi-line statement as it gets inputed, and checks for syntax errors line by line.  Python-mls lets you edit and then sends the complete block _en masse_ at the end, so any errors will appear at that point.  Python-mls also lets you move and edit right across lines using normal emacs commands (even python navigation commands), whereas iPython treats each line as a separate entity you can access via up/down arrow _only_.  Editing python-mls multi-line commands feels just like editing code in a source buffer. 
 
 - **How do you skip over entire multi-line statements in history without having to move all the way through them?** Try holding Shift: `S-up`,`S-down` (or `C-S-n/p`).
 
-- **Why does python-mls deal with fontification?** By default, inferior-python-mode copies the full input text back and forth from the inferior shell to a hidden Python buffer, and fully refontifies it there _after every keypress_.  With short, single-line statements this isn't such a problem, but with long multi-line input this becomes highly inefficient. Python-mls replaces this method entirelyl with a special in-buffer fontification function, that does double duty, both adding the continuation line prefix decorations (e.g. ` ...`) and performing default python-mode fontification on just the input, all in one efficient pass.  This also saves the creation of random fontification buffers.
+- **Why does python-mls do fontification?** By default, inferior-python-mode copies the full input text at the prompt back and forth from the inferior shell to a hidden Python buffer, and fully refontifies it there _after every keypress_.  With short, single-line statements this isn't such a problem, but with long multi-line input this becomes highly inefficient. Python-mls replaces this method entirely with a special in-buffer fontification function, that does double duty, both adding the continuation line prefix decorations (e.g. ` ...`) and performing default python-mode fontification on just the input, all in one efficient pass.  This also increases performance and saves the creation of random fontification buffers.
 
 - **Any other tips?**  
    - Get to know the useful commands provided by `comint` (which most Emacs inferior shells use): `C-c C-u`: `comint-kill-input`; `C-c C-o`: `comint-kill-output`; `C-c M-o`: `comint-clear-buffer`, and more.
