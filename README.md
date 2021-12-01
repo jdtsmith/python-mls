@@ -11,14 +11,14 @@ Python-MLS (multi-line shell) is an Emacs minor mode for working directly with m
 - Arbitrary command lengths.
 - Auto-detects and handles native continuation prompts.
 - Auto-indents multi-line commands.
-- Normal python editing commands work (e.g. tab to cycle indent).
+- Normal emacs and python editing commands work (e.g. tab to cycle indent).
 - Replaces python-mode's external buffer fontifications with in-buffer
   fontification for signficant speedup on long multi-line input statements.
 - Up/Down arrow history browsing with and without block movement
   (try shift arrow, or `C-S-n/p`).
 - Saves and restore (multi-line) command history.
 - Directly kill and yank multi-line code blocks to & from Python
-  buffers.
+  buffers, websites, etc..
   
 # Installation
 
