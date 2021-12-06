@@ -433,91 +433,102 @@ Kill buffer when PROCESS completes on EVENT."
 		cmd (python-mls-narrowed-command cmd) map python-mode-map)))
     map))
 
-(defun python-mls-setup ()
-  "Setup python shell for multiline input."
-  ;; command history
-  (when python-mls-save-command-history
-    (unless (file-name-absolute-p python-mls-command-history-file)
-      (setq python-mls-command-history-file
-	    (expand-file-name python-mls-command-history-file
-			      user-emacs-directory)))
-    (when (stringp python-mls-command-history-file)
-      (set (make-local-variable 'comint-input-ring-file-name)
-	   python-mls-command-history-file)
-      (if (file-regular-p python-mls-command-history-file)
-	  (let ((comint-input-ring-separator " "))
-	    (comint-read-input-ring))))
-    (let ((process (get-buffer-process (current-buffer))))
-      (set-process-sentinel process #'python-mls-sentinel))
-    (add-hook 'kill-buffer-hook #'python-mls--save-input nil t))
-  (setq-local comint-history-isearch 'dwim)
+(defun python-mls--comint-output-filter-fix-rear-nonsticky (&rest _r)
+  "Works around a text property comint bug in Emacs <28.
+Used as :after advice for `comint-output-filter'."
+  (if comint-last-prompt
+      (let ((inhibit-read-only t))
+	(add-text-properties
+	 (car comint-last-prompt)
+	 (cdr comint-last-prompt)
+	 '(rear-nonsticky ; work around bug#47603
+	   (field inhibit-line-move-field-capture
+		  read-only font-lock-face))))))
 
-  ;; font-lock handling
-  (if (derived-mode-p 'inferior-python-mode)
-      (python-shell-font-lock-turn-off)) ;We'll do in-buffer font-lock ourselves!
-  (setq-local
-   font-lock-keywords-only nil
-   syntax-propertize-function python-syntax-propertize-function
-   comment-start-skip "#+\\s-*"
-   parse-sexp-lookup-properties t
-   parse-sexp-ignore-comments t
-   forward-sexp-function #'python-nav-forward-sexp
-   font-lock-fontify-region-function #'python-mls--fontify-region-function)
-  (setq python-mls-font-lock-keywords
-	(symbol-value
-	 (font-lock-choose-keywords
-	  python-font-lock-keywords (font-lock-value-in-major-mode
-				     font-lock-maximum-decoration))))
-
-  (setq-local comint-get-old-input #'python-mls-get-old-input
-	      comint-history-isearch 'dwim)
-  (add-hook 'comint-input-filter-functions
-	    #'python-mls--strip-input-history-properties nil t)
-  (add-hook 'comint-output-filter-functions #'python-mls-check-prompt)
-  (cursor-intangible-mode 1)
-
-  ;; Shift up/C-p: skips blocks
-  (dolist (key (where-is-internal 'previous-line))
-    (let ((new (vector `(shift ,(aref key 0)))))
-      (define-key python-mls-mode-map new 'python-mls-noblock-up-or-history)))
-  (dolist (key (where-is-internal 'next-line))
-    (let ((new (vector `(shift ,(aref key 0)))))
-      (define-key python-mls-mode-map new 'python-mls-noblock-down-or-history)))
-  
-  ;; indentation
-  (electric-indent-local-mode -1) ; We handle [Ret] indentation ourselves
-  (setq-local indent-line-function #'python-mls--indent-line))
-
-(if (version< emacs-version "28")
-    (advice-add 'comint-output-filter :after
-		(lambda (&rest _r)
-		  (if comint-last-prompt
-		      (let ((inhibit-read-only t))
-			(add-text-properties
-			 (car comint-last-prompt)
-			 (cdr comint-last-prompt)
-			 '(rear-nonsticky ; work around bug#47603
-			   (field inhibit-line-move-field-capture
-				  read-only font-lock-face))))))))
-
-;;;###autoload
-(define-minor-mode python-mls-mode
-  "Minor mode in inferior (i)python buffers for editing multi-line statements."
-  :keymap python-mls-mode-map
-  (if python-mls-mode
-      (python-mls-setup)))
-
-;;;###autoload
 (defun python-mls-python-setup ()
   "Set `python-mode' buffers to exclude `line-prefix' on yank."
   (make-local-variable 'yank-excluded-properties) ; for python-mls
   (cl-pushnew 'line-prefix yank-excluded-properties))
 
 ;;;###autoload
-(add-hook 'inferior-python-mode-hook 'python-mls-mode)
+(defun python-mls-setup (&optional disable)
+  "Enable python-mls for python shells and buffers.
+If DISABLE is non-nil, disable instead."
+  (interactive)
+  (if disable
+      (progn
+	(remove-hook 'inferior-python-mode-hook 'python-mls-mode)
+	(add-hook 'python-mode-hook 'python-mls-python-setup)
+	(if (version< emacs-version "28")
+	    (advice-remove 'comint-output-filter
+			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
+    (add-hook 'inferior-python-mode-hook 'python-mls-mode)
+    (add-hook 'python-mode-hook 'python-mls-python-setup)
+    ;; Fix bug in rear-nonsticky
+    (if (version< emacs-version "28")
+	(advice-add 'comint-output-filter :after
+		    #'python-mls--comint-output-filter-fix-rear-nonsticky))))
 
 ;;;###autoload
-(add-hook 'python-mode-hook 'python-mls-python-setup)
+(define-minor-mode python-mls-mode
+  "Minor mode enabling multi-line statements in inferior (i)Python buffers."
+  :keymap python-mls-mode-map
+  (if python-mls-mode
+      (progn 
+	;; command history
+	(when python-mls-save-command-history
+	  (unless (file-name-absolute-p python-mls-command-history-file)
+	    (setq python-mls-command-history-file
+		  (expand-file-name python-mls-command-history-file
+				    user-emacs-directory)))
+	  (when (stringp python-mls-command-history-file)
+	    (set (make-local-variable 'comint-input-ring-file-name)
+		 python-mls-command-history-file)
+	    (if (file-regular-p python-mls-command-history-file)
+		(let ((comint-input-ring-separator " "))
+		  (comint-read-input-ring))))
+	  (let ((process (get-buffer-process (current-buffer))))
+	    (set-process-sentinel process #'python-mls-sentinel))
+	  (add-hook 'kill-buffer-hook #'python-mls--save-input nil t))
+	(setq-local comint-history-isearch 'dwim)
+
+	;; font-lock handling
+	(if (derived-mode-p 'inferior-python-mode)
+	    (python-shell-font-lock-turn-off)) ;We'll do in-buffer font-lock ourselves!
+	(setq-local
+	 font-lock-keywords-only nil
+	 syntax-propertize-function python-syntax-propertize-function
+	 comment-start-skip "#+\\s-*"
+	 parse-sexp-lookup-properties t
+	 parse-sexp-ignore-comments t
+	 forward-sexp-function #'python-nav-forward-sexp
+	 font-lock-fontify-region-function #'python-mls--fontify-region-function)
+	(setq python-mls-font-lock-keywords
+	      (symbol-value
+	       (font-lock-choose-keywords
+		python-font-lock-keywords (font-lock-value-in-major-mode
+					   font-lock-maximum-decoration))))
+
+	(setq-local comint-get-old-input #'python-mls-get-old-input
+		    comint-history-isearch 'dwim)
+	(add-hook 'comint-input-filter-functions
+		  #'python-mls--strip-input-history-properties nil t)
+	(add-hook 'comint-output-filter-functions #'python-mls-check-prompt)
+	(cursor-intangible-mode 1)
+
+	;; Shift up/C-p: skips blocks
+	(dolist (key (where-is-internal 'previous-line))
+	  (let ((new (vector `(shift ,(aref key 0)))))
+	    (define-key python-mls-mode-map new 'python-mls-noblock-up-or-history)))
+	(dolist (key (where-is-internal 'next-line))
+	  (let ((new (vector `(shift ,(aref key 0)))))
+	    (define-key python-mls-mode-map new 'python-mls-noblock-down-or-history)))
+	
+	;; indentation
+	(electric-indent-local-mode -1) ; We handle [Ret] indentation ourselves
+	(setq-local indent-line-function #'python-mls--indent-line))
+    (python-mls-setup 'disable)
+    (message "Python-MLS disabled for future inferior python shells.")))
 
 (provide 'python-mls)
 
