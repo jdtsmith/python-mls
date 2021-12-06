@@ -6,7 +6,7 @@
 ;; Homepage: https://github.com/jdtsmith/python-mls
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: languages, processes
-;; Package-Version: 0.1.0
+;; Version: 0.1.0
 
 ;;; Commentary:
 
@@ -374,7 +374,6 @@ With VERBOSE print fontification status messages."
 		 #'python-font-lock-syntactic-face-function)
 		(font-lock-dont-widen t)
 		(start (max pmark beg)))
-	    ;(message "FLE: %s->%s" start end)
 	    (put-text-property start end 'line-prefix
 			       python-mls-continuation-prompt)
 	    (save-restriction
