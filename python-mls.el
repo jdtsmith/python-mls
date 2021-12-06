@@ -56,12 +56,12 @@ the history."
   :type 'boolean)
 
 (defcustom python-mls-command-history-file "pyhist"
-  "The file in which the command history is saved.
-In order to change the size of the history, see the variable
-`comint-input-ring-size'.
-The history is only saved if the variable `python-mls-save-command-history'
-is non-nil.  Unless it is an absolute filepath, it saved under
-`user-emacs-directory'."
+  "The file root for the command history file.
+Unless this is an absolute file name, the history file is formed
+by appending -`python-shell-interpreter' to this value, within
+`user-emacs-directory'.  To change the size of the history ring,
+see the variable `comint-input-ring-size'.  History is only saved
+if the variable `python-mls-save-command-history' is non-nil."
   :group 'python-mls
   :type 'file)
 
@@ -474,12 +474,15 @@ If DISABLE is non-nil, disable instead."
   "Minor mode enabling multi-line statements in inferior (i)Python buffers."
   :keymap python-mls-mode-map
   (if python-mls-mode
-      (progn 
+      (progn
 	;; command history
 	(when python-mls-save-command-history
+	  (make-local-variable 'python-mls-command-history-file)
 	  (unless (file-name-absolute-p python-mls-command-history-file)
 	    (setq python-mls-command-history-file
-		  (expand-file-name python-mls-command-history-file
+		  (expand-file-name (concat python-mls-command-history-file
+					    "-"
+					    python-shell-interpreter)
 				    user-emacs-directory)))
 	  (when (stringp python-mls-command-history-file)
 	    (set (make-local-variable 'comint-input-ring-file-name)
