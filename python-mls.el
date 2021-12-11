@@ -404,7 +404,6 @@ Kill buffer when PROCESS completes on EVENT."
 
 (defun python-mls-narrowed-command (command)
   "Call a COMMAND, narrowing to region after prompt."
-  (message "Narrowing Command: %S" command)
   (lambda (&rest r)
     (interactive)
     (save-restriction
@@ -457,13 +456,13 @@ If DISABLE is non-nil, disable instead."
   (interactive)
   (if disable
       (progn
-	(remove-hook 'inferior-python-mode-hook 'python-mls-mode)
-	(add-hook 'python-mode-hook 'python-mls-python-setup)
+	(remove-hook 'inferior-python-mode-hook #'python-mls-mode)
+	(add-hook 'python-mode-hook #'python-mls-python-setup)
 	(if (version< emacs-version "28")
-	    (advice-remove 'comint-output-filter
+	    (advice-remove #'comint-output-filter
 			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
-    (add-hook 'inferior-python-mode-hook 'python-mls-mode)
-    (add-hook 'python-mode-hook 'python-mls-python-setup)
+    (add-hook 'inferior-python-mode-hook #'python-mls-mode)
+    (add-hook 'python-mode-hook #'python-mls-python-setup)
     ;; Fix bug in rear-nonsticky
     (if (version< emacs-version "28")
 	(advice-add 'comint-output-filter :after
