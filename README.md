@@ -29,7 +29,7 @@ Simply install python-MLS from this repository or MELPA, and use `require` or `u
   (python-mls-setup))
 ```
 
-Python-MLS will then  automatically enable itself in your python inferior shell, which you can start however you normally do (e.g. `M-x run-python`).  
+Python-MLS will then  automatically enable itself in your python inferior shell, which you can start however you normally do (e.g. `C-c C-p` in a Python buffer, or `M-x run-python`).
 
 # Usage
 
