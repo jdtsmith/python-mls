@@ -29,11 +29,11 @@ Simply install python-MLS from this repository or MELPA, and use `require` or `u
   (python-mls-setup))
 ```
 
-Python-MLS will then  automatically enable itself in your python inferior shell, which you can start however you normally do (e.g. `C-c C-p` in a Python buffer, or `M-x run-python`).
+Python-MLS will then  automatically enable itself in your python inferior shell, which you can start however you normally do (e.g. `C-c C-p` in a Python buffer, or `M-x run-python`).  
 
 # Usage
 
-Using python-MLS is as simple as entering the first of a multi-line statement at the (i)Python prompt, then editing as you would in a python buffer.  Hit `S-Ret` or enter two final blank lines to execute. 
+Using python-MLS is as simple as entering the first of a multi-line statement at the (i)Python prompt, then editing as you would in a python buffer.  Hit `S-Ret` or enter two final blank lines to execute. You can disable python-MLS for _future_ shells in one Emacs session with `M-x python-mls-mode` in an enabled shell buffer. 
 
 # Keys
 
