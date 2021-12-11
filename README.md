@@ -42,6 +42,7 @@ Using python-MLS is as simple as entering the first of a multi-line statement at
 - `S-Ret` or `M-Ret`: send a multi-line statement from anywhere within it.
 -  Two blank lines at statement end: send the multi-line statement.
 - `C-j`: break an initial line into a multi-line command anywhere. 
+- `C-r`/`C-s`: Search backward/forward through command history. 
 - `M-a`/`M-e`/`C-M-u`: (by default) python-nav bindings for backward-, forward-block and up-list are brought over from python mode.  See `python-mls-import-python-nav-command-list` to add more. 
 - `C-d`: send EOF, if at a prompt at the end of the buffer. 
 
