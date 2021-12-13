@@ -414,8 +414,8 @@ Kill buffer when PROCESS completes on EVENT."
   (let ((map (make-sparse-keymap)))
     (define-key map [(meta return)] #'python-mls-send-input)
     (define-key map [(shift return)] #'python-mls-send-input)
-    (define-key map [remap previous-line] #'python-mls-up-or-history)
-    (define-key map [remap next-line] #'python-mls-down-or-history)
+    (define-key map [remap comint-previous-input] #'python-mls-up-or-history)
+    (define-key map [remap comint-next-input] #'python-mls-down-or-history)
     (define-key map [remap comint-send-input]
       #'python-mls-continue-or-send-input)
     (define-key map [remap python-shell-completion-complete-or-indent]
