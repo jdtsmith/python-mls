@@ -457,7 +457,7 @@ If DISABLE is non-nil, disable instead."
   (if disable
       (progn
 	(remove-hook 'inferior-python-mode-hook #'python-mls-mode)
-	(add-hook 'python-mode-hook #'python-mls-python-setup)
+	(remove-hook 'python-mode-hook #'python-mls-python-setup)
 	(if (version< emacs-version "28")
 	    (advice-remove #'comint-output-filter
 			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
