@@ -169,7 +169,8 @@ Omits extra newlines at end, and preserves (some) text properties."
     (remove-text-properties 0 (length str)
 			    '(fontified nil
 					font-lock-face  nil
-					help-echo nil mouse-face nil) str)
+					help-echo nil mouse-face nil)
+			    str)
     (string-trim-right str "[\n\r]+")))
 
 (defun python-mls-continue-or-send-input ()
@@ -220,15 +221,16 @@ Does not considering final newline.  With ARG, delete that many characters."
   #'python-mls-interrupt
   "Function to interrupt the sub-job")
 
-(defun python-mls-interrupt-quietly ()
-  "Interrupt the python process and bury any output."
+(defun python-mls-interrupt-quietly (&optional no-reset)
+  "Interrupt the python process and bury any output.
+If NO-RESET is non-nil, do not reset the accumulation buffer."
   (let ((comint-preoutput-filter-functions '(python-shell-output-filter))
         (python-shell-output-filter-in-progress t))
-    (setq python-shell-output-filter-buffer nil)
+    (unless no-reset (setq python-shell-output-filter-buffer nil))
     (funcall python-mls-interrupt-process-function)
     (while python-shell-output-filter-in-progress
       (accept-process-output))
-    (setq python-shell-output-filter-buffer nil)))
+    (unless no-reset (setq python-shell-output-filter-buffer nil))))
 
 (defun python-mls-invisible-newline ()
   "Insert an invisible, cursor-intangible newline without moving point.
@@ -463,6 +465,7 @@ If DISABLE is non-nil, disable instead."
 			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
     (add-hook 'inferior-python-mode-hook #'python-mls-mode)
     (add-hook 'python-mode-hook #'python-mls-python-setup)
+    
     ;; Fix bug in rear-nonsticky
     (if (version< emacs-version "28")
 	(advice-add 'comint-output-filter :after
