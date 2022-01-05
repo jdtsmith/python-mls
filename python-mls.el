@@ -327,16 +327,16 @@ NOCONT-MOVE is non-nil."
   (let* ((prompt (cdr comint-last-prompt))
 	 (arg (or arg 1))
 	 (arg (if up arg (- arg))))
-    (if (and
-	 prompt
-	 (or nocont-move
-	     (if up (= (line-number-at-pos)
-		       (line-number-at-pos prompt))
-	       (>= (line-number-at-pos)
-		   (save-excursion ; Down
-		     (goto-char (point-max))
-		     (skip-chars-backward "\r\n" (1- (point)))
-		     (line-number-at-pos))))))
+    (if (and prompt
+	     (or nocont-move
+		 (if up (and (>= (point) prompt)
+			     (= (line-number-at-pos)
+				(line-number-at-pos prompt)))
+		   (>= (line-number-at-pos)
+		       (save-excursion	; Down
+			 (goto-char (point-max))
+			 (skip-chars-backward "\r\n" (1- (point)))
+			 (line-number-at-pos))))))
 	(comint-previous-input arg)
       (line-move (- arg)))))
 
