@@ -1,4 +1,4 @@
-;;; python-mls.el --- Multi-line shell for (i)Python  -*- lexical-binding: t -*-
+;;; python-mls.el --- Multi-line shell for (i)Python  -*-lexical-binding: t-*-
 
 ;; Copyright (C) 2021 J.D. Smith
 
@@ -131,27 +131,13 @@ position in the buffer to go to."
     (beginning-of-line)
     (looking-at-p "[[:space:]]*$")))
 
-(defun python-mls-python-send-multiline-input (_proc string)
-  "Default multi-line input sender for python, sending STRING."
-  (python-shell-send-string string)) ;sends multi-line via file
-
-(defvar-local python-mls-send-multiline-input
-  #'python-mls-python-send-multiline-input
-  "Which method to use to send multi-line statements.
-Default is file based load/exec/command for python, or, if interpreter matches ipython, %cpaste.")
-
 (defvar-local python-mls--check-prompt t) ;; start checking by default
 
-(defun python-mls-send-input ()
-  "Strip space and newlines from end of input and send."
-  (interactive)
-  (let* ((orig-sender comint-input-sender)
-	(comint-input-sender
-	 (if (python-mls-in-continuation 'trim)
-	     python-mls-send-multiline-input
-	   orig-sender)))
-    (setq python-mls--check-prompt t)
-    (comint-send-input)))
+(defun python-mls-send-input (proc input)
+  "Strip space and newlines from end of input and send.
+Use as `comint-input-sender'."
+  (setq python-mls--check-prompt t)
+  (python-shell-send-string input proc))
 
 (defun python-mls-get-old-input ()
   "Get old input.
@@ -176,18 +162,17 @@ Omits extra newlines at end, and preserves (some) text properties."
 (defun python-mls-continue-or-send-input ()
   "Either continue an ongoing continued command, or send input."
   (interactive)
-  (let ((ln (line-number-at-pos))
-	(lnmx (line-number-at-pos (point-max))))
+  (let ((ln (line-number-at-pos)))
     (if (or
 	 (< ln (line-number-at-pos (cdr comint-last-prompt))) ; old input
-	 (not (python-mls-in-continuation))
-	 (and (python-mls-line-empty-p)
-	      (or
-	       (eq ln lnmx)
-	       (and (eq ln (1- lnmx)) ;trailing blank line OK
-		    (python-mls-line-empty-p 1)))))
-	(python-mls-send-input)
-      (newline) ;(comint-accumulate)
+	 (not (python-mls-in-continuation)) ;; simple command
+	 (and (python-mls-line-empty-p) ;;final blank lines
+	      (let ((lnmx (line-number-at-pos (point-max))))
+		(or (eq ln lnmx)
+		    (and (eq ln (1- lnmx)) ;trailing blank line OK
+			 (python-mls-line-empty-p 1))))))
+	(comint-send-input) 		; this is input
+      (newline)				;(comint-accumulate)
       (funcall indent-line-function)))) ; NO completion please
 
 (defun python-mls--strip-input-history-properties (_str)
@@ -414,12 +399,12 @@ Kill buffer when PROCESS completes on EVENT."
 
 (defvar python-mls-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(meta return)] #'python-mls-send-input)
-    (define-key map [(shift return)] #'python-mls-send-input)
+    (define-key map [return]
+      #'python-mls-continue-or-send-input)
+    (define-key map [(meta return)] #'comint-send-input)
+    (define-key map [(shift return)] #'comint-send-input)
     (define-key map [remap previous-line] #'python-mls-up-or-history)
     (define-key map [remap next-line] #'python-mls-down-or-history)
-    (define-key map [remap comint-send-input]
-      #'python-mls-continue-or-send-input)
     (define-key map [remap python-shell-completion-complete-or-indent]
       #'indent-for-tab-command) ; restore
     (define-key map [(meta up)] #'comint-previous-matching-input-from-input)
@@ -507,7 +492,8 @@ If DISABLE is non-nil, disable instead."
 	 parse-sexp-lookup-properties t
 	 parse-sexp-ignore-comments t
 	 forward-sexp-function #'python-nav-forward-sexp
-	 font-lock-fontify-region-function #'python-mls--fontify-region-function)
+	 font-lock-fontify-region-function #'python-mls--fontify-region-function
+	 comint-input-sender #'python-mls-send-input)
 	(setq python-mls-font-lock-keywords
 	      (symbol-value
 	       (font-lock-choose-keywords
