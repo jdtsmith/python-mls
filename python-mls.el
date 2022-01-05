@@ -16,7 +16,7 @@
 ;; 
 ;; Features:
 ;; - Works with both python and ipython.
-;; - Arbitrary command lengths.
+;; - Accepts arbitrary multi-line command lengths.
 ;; - Auto-detects and handles native continuation prompts.
 ;; - Auto-indents multi-line commands.
 ;; - Replaces buffer-based fontifications with in-buffer python-mode
@@ -45,8 +45,8 @@
 
 (defgroup python-mls nil
   "Setup for command parameters of the Python Multi-Line Shell."
-  :prefix "Multi-line Shell (MLS)"
-  :group 'python)
+  :group 'python
+  :prefix "python-mls")
 
 (defcustom python-mls-save-command-history t
   "Non-nil means preserve command history between sessions.
@@ -92,7 +92,7 @@ KEY."
   "Test whether we are in an continued input statement.
 We are in a continuation statement if at least one non-empty line
 exists after the line containing the prompt.  Trailing empty lines
-don't count.  If TRIM-TRAILING-WS is non-nil, any finally space
+don't count.  If TRIM-TRAILING-WS is non-nil, any final space
 after the output field will be trimmed."
   (let ((prompt-end
 	 (if (and comint-last-prompt
