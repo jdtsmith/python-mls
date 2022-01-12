@@ -399,7 +399,7 @@ Kill buffer when PROCESS completes on EVENT."
 
 (defvar python-mls-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [return]
+    (define-key map "\r"
       #'python-mls-continue-or-send-input)
     (define-key map [(meta return)] #'comint-send-input)
     (define-key map [(shift return)] #'comint-send-input)
