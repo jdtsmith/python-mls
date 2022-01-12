@@ -237,7 +237,7 @@ end of the buffer."
   "Whether we are in (i)PDB, according to the prompt.")
 
 ;;;###autoload
-(defun python-mls-check-prompt (output)
+(defun python-mls-check-prompt (&rest _)
   "Check for prompt, after input is sent.
 If a continuation prompt is found in OUTPUT, fix up comint to
 handle it.  Multi-line statements are handled directly.  If a
@@ -246,9 +246,9 @@ statment, the process will return a continuation prompt.  Remove
 it, sanitize the history, and then bring the last input forward
 to continue.  Run the hook `python-mls-after-prompt-hook' in idle
 time after a normal prompt is detected."
-  (when python-mls--check-prompt
+  (when-let ((python-mls--check-prompt)
+	     (process (get-buffer-process (current-buffer))))
     (let* ((python-mls--check-prompt nil) ; don't re-enter
-	   (process (get-buffer-process (current-buffer)))
 	   (pmark (process-mark process)))
       (goto-char pmark)
       (forward-line 0)
@@ -290,8 +290,7 @@ time after a normal prompt is detected."
 	  (python-mls-compute-continuation-prompt prompt)
 	  (setq python-mls--check-prompt nil)
 	  (goto-char pmark)
-	  (run-with-idle-timer  ;; Hooks may need comint-last-prompt set
-	   0 nil (lambda () (run-hooks 'python-mls-after-prompt-hook)))))))))
+	  (run-hooks 'python-mls-after-prompt-hook)))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation based on the text of PROMPT."
@@ -506,7 +505,9 @@ If DISABLE is non-nil, disable instead."
 		    comint-history-isearch 'dwim)
 	(add-hook 'comint-input-filter-functions
 		  #'python-mls--strip-input-history-properties nil t)
-	(add-hook 'comint-output-filter-functions #'python-mls-check-prompt)
+
+	;; We run this :after so that  `comint-last-prompt' is set
+	(advice-add #'comint-output-filter :after #'python-mls-check-prompt)
 	(cursor-intangible-mode 1)
 
 	;; Shift up/C-p: skips blocks
