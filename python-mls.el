@@ -253,14 +253,14 @@ time after a normal prompt is detected."
       (goto-char pmark)
       (forward-line 0)
       (cond
-       ;; Continuation prompt: comint performs input echo deletion
-       ;; in comint-send-string, which implicitly calls this filter
+       ;; Continuation prompt: comint performs input echo deletion in
+       ;; comint-send-string, which implicitly calls this filter
        ;; function while waiting for echoed input.  But
        ;; echo-detection/deletion must run _first_ before our
-       ;; continuation prompt deletion (which itself would delete
-       ;; the echoed input).  Since comint-send-input calls us
-       ;; finally with an empty string, if process-echoes is set,
-       ;; check and only run at that time.
+       ;; continuation prompt deletion (which itself would delete the
+       ;; echoed input).  Since comint-send-input calls us finally
+       ;; with an empty string (after echo detection), if
+       ;; process-echoes is set, check and run this only at that time.
        ((and (or (not comint-process-echoes) (string-empty-p output))
 	     (looking-at python-mls-continuation-prompt-regexp))
 	(let* ((start (marker-position comint-last-input-start))
@@ -268,7 +268,7 @@ time after a normal prompt is detected."
 		       start
 		       comint-last-input-end))
 	       (inhibit-read-only t))
-	  (python-mls-interrupt-quietly) ; re-enters
+	  (python-mls-interrupt-quietly) ; re-enters!
 	  (delete-region start pmark) ;out with the old
 	  (goto-char pmark)
 	  (insert input)
@@ -282,10 +282,11 @@ time after a normal prompt is detected."
        ((looking-at python-shell--prompt-calculated-input-regexp)
 	(let ((prompt (match-string 0))
 	      (inhibit-read-only t))
-	  (setq python-mls-in-pdb (string-match-p python-shell-prompt-pdb-regexp
-						  prompt))
+	  (setq python-mls-in-pdb (string-match-p
+				   python-shell-prompt-pdb-regexp
+				   prompt))
 	  (add-text-properties (1- pmark) (point-at-bol)
-			       '(cursor-intangible t))  ; make normal cursor intangible
+			       '(cursor-intangible t)) 
 	  (python-mls-compute-continuation-prompt prompt)
 	  (setq python-mls--check-prompt nil)
 	  (goto-char pmark)
@@ -489,10 +490,11 @@ If DISABLE is non-nil, disable instead."
 	 font-lock-keywords-only nil
 	 syntax-propertize-function python-syntax-propertize-function
 	 comment-start-skip "#+\\s-*"
-	 parse-sexp-lookup-properties t
 	 parse-sexp-ignore-comments t
 	 forward-sexp-function #'python-nav-forward-sexp
-	 font-lock-fontify-region-function #'python-mls--fontify-region-function
+	 parse-sexp-lookup-properties t
+	 font-lock-fontify-region-function
+	 #'python-mls--fontify-region-function
 	 comint-input-sender #'python-mls-send-input)
 	(setq python-mls-font-lock-keywords
 	      (symbol-value
@@ -514,7 +516,7 @@ If DISABLE is non-nil, disable instead."
 	(dolist (key (where-is-internal 'next-line))
 	  (let ((new (vector `(shift ,(aref key 0)))))
 	    (define-key python-mls-mode-map new 'python-mls-noblock-down-or-history)))
-	
+
 	;; indentation
 	(electric-indent-local-mode -1) ; We handle [Ret] indentation ourselves
 	(setq-local indent-line-function #'python-mls--indent-line))
