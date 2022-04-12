@@ -87,6 +87,12 @@ KEY."
   :group 'python-mls
   :type '(repeat (choice function (cons function key-sequence))))
 
+(defcustom python-mls-prompt-change-functions nil
+  "A list of functions to run when the prompt type changes.
+Each function should take a single argument -- the prompt type (a symbol)."
+  :group 'python-mls
+  :type 'hook
+  :local t)
 (defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.:? ")
 (defun python-mls-in-continuation (&optional trim-trailing-ws)
   "Test whether we are in an continued input statement.
@@ -195,6 +201,7 @@ Does not considering final newline.  With ARG, delete that many characters."
 	(progn
 	  (goto-char (point-max))
 	  (comint-kill-input)
+	  (setq python-mls--check-prompt t)
 	  (process-send-eof))
       (delete-char arg))))
 
@@ -233,8 +240,9 @@ end of the buffer."
   "Current computed continuation prompt.")
 (defvar python-mls-old-prompt nil
   "Last prompt before recent send.")
-(defvar-local python-mls-in-pdb nil
-  "Whether we are in (i)PDB, according to the prompt.")
+(defvar-local python-mls-prompt-type nil
+  "The type of prompt.
+Can be 'pdb, 'other, or nil for a normal input prompt.")
 
 ;;;###autoload
 (defun python-mls-check-prompt (&rest _)
@@ -247,49 +255,61 @@ it, sanitize the history, and then bring the last input forward
 to continue.  Run the hook `python-mls-after-prompt-hook' after a
 normal prompt is detected."
   (when-let ((python-mls--check-prompt)
-	     (process (get-buffer-process (current-buffer)))
+	     (process ;; (get-buffer-process (current-buffer))
+	      (python-shell-get-process))
 	     (pmark (process-mark process)))
-    (goto-char pmark)
-    (forward-line 0)
-    (cond
-     ;; Continuation prompt: comint performs input echo deletion in
-     ;; comint-send-string, which implicitly calls this filter
-     ;; function while waiting for echoed input.  But
-     ;; echo-detection/deletion must run _first_ before our
-     ;; continuation prompt deletion (which itself would delete the
-     ;; echoed input).  Since comint-send-input calls us finally
-     ;; with an empty string (after echo detection), if
-     ;; process-echoes is set, check and run this only at that time.
-     ((and (or (not comint-process-echoes) (string-empty-p output))
-	   (looking-at python-mls-continuation-prompt-regexp))
-      (let* ((start (marker-position comint-last-input-start))
-	     (input (buffer-substring-no-properties
-		     start
-		     comint-last-input-end))
-	     (inhibit-read-only t))
-	(setq python-mls--check-prompt nil)
-	(python-mls-interrupt-quietly) ; re-enters!
-	(delete-region start pmark) ;out with the old
-	(goto-char pmark)
-	(insert input)
-	(funcall indent-line-function)
-	(if (and comint-input-ring
-		 (not (ring-empty-p comint-input-ring)))
-	    (ring-remove comint-input-ring 0))))
+    (with-current-buffer (process-buffer process)
+      (goto-char pmark)
+      (forward-line 0)
+      (cond
+       ;; Continuation prompt: comint performs input echo deletion in
+       ;; comint-send-string, which implicitly calls this filter
+       ;; function while waiting for echoed input.  But
+       ;; echo-detection/deletion must run _first_ before our
+       ;; continuation prompt deletion (which itself would delete the
+       ;; echoed input).  Since comint-send-input calls us finally
+       ;; with an empty string (after echo detection), if
+       ;; process-echoes is set, check and run this only at that time.
+       ((and (or (not comint-process-echoes) (string-empty-p output))
+	     (looking-at python-mls-continuation-prompt-regexp))
+	(let* ((start (marker-position comint-last-input-start))
+	       (input (buffer-substring-no-properties
+		       start
+		       comint-last-input-end))
+	       (inhibit-read-only t))
+	  (setq python-mls--check-prompt nil)
+	  (python-mls-interrupt-quietly) ; re-enters!
+	  (delete-region start pmark)	 ;out with the old
+	  (goto-char pmark)
+	  (insert input)
+	  (funcall indent-line-function)
+	  (if (and comint-input-ring
+		   (not (ring-empty-p comint-input-ring)))
+	      (ring-remove comint-input-ring 0))))
      
-     ;; Normal prompt
-     ((looking-at python-shell--prompt-calculated-input-regexp)
-      (let ((prompt (match-string 0))
-	    (inhibit-read-only t))
-	(setq python-mls--check-prompt nil
-	      python-mls-in-pdb (string-match-p
-				 python-shell-prompt-pdb-regexp
-				 prompt))
-	(add-text-properties (1- pmark) (point-at-bol)
-			     '(cursor-intangible t)) 
-	(python-mls-compute-continuation-prompt prompt)
-	(goto-char pmark)
-	(run-hooks 'python-mls-after-prompt-hook))))))
+       ;; Normal prompts, including pdb, etc.
+       ((looking-at python-shell--prompt-calculated-input-regexp)
+	(let* ((prompt (match-string 0))
+	       (inhibit-read-only t)
+	       (ptype
+		(cond ((< (match-end 0) (point-max)) 'other) ; extra stuff at end
+		      ((string-match-p
+			python-shell-prompt-pdb-regexp
+			prompt)
+		       'pdb)
+		      (t nil))))
+	  (when (not (eq ptype python-mls-prompt-type))
+	    (setq python-mls-prompt-type ptype)
+	    (run-hook-with-args 'python-mls-prompt-change-functions ptype))
+	  
+	  (setq python-mls--check-prompt nil)
+	  (add-text-properties (1- pmark) (point-at-bol)
+			       '(cursor-intangible t)) 
+	  (python-mls-compute-continuation-prompt prompt)
+	  (goto-char pmark)
+	  (run-hooks 'python-mls-after-prompt-hook)))
+       
+       (t (setq python-mls-prompt-type 'other))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation based on the text of PROMPT."
