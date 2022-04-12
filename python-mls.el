@@ -535,7 +535,7 @@ If DISABLE is non-nil, disable instead."
 	(add-hook 'comint-input-filter-functions
 		  #'python-mls--strip-input-history-properties nil t)
 
-	;; We run this :after so that  `comint-last-prompt' is set
+	;; We run this :after so that  `comint-last-prompt' is already set
 	(advice-add #'comint-output-filter :after #'python-mls-check-prompt)
 	(cursor-intangible-mode 1)
 
