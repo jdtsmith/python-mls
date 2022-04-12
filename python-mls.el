@@ -93,6 +93,14 @@ Each function should take a single argument -- the prompt type (a symbol)."
   :group 'python-mls
   :type 'hook
   :local t)
+
+(defcustom python-mls-sentinel-hooks nil
+  "Hooks to run when the process dies, before saving history."
+  :group 'python-mls
+  :type 'hook
+  :local t)
+
+
 (defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.:? ")
 (defun python-mls-in-continuation (&optional trim-trailing-ws)
   "Test whether we are in an continued input statement.
@@ -401,12 +409,14 @@ With VERBOSE print fontification status messages."
 Kill buffer when PROCESS completes on EVENT."
   (let ((buf (process-buffer process)))
     (if (buffer-live-p buf)
-      (with-current-buffer buf
-	(goto-char (point-max))
-	(insert (format "\n\n  Process %s %s" process event))
-	(if python-mls-kill-buffer-process-quit
-	    (kill-buffer buf)
-	  (setq python-mls--check-prompt t))))))
+	(with-current-buffer buf
+	  (run-hooks python-mls-sentinel-hooks)
+	  (goto-char (point-max))
+	  (insert (format "\n\n  Process %s %s" process event))
+	  (python-mls--save-input)
+	  (if python-mls-kill-buffer-process-quit
+	      (kill-buffer buf)
+	    (setq python-mls--check-prompt t))))))
 
 (defun python-mls-narrowed-command (command)
   "Call a COMMAND, narrowing to region after prompt."
