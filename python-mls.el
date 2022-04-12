@@ -215,7 +215,8 @@ Does not considering final newline.  With ARG, delete that many characters."
 
 (defun python-mls-interrupt ()
   "Interrupt the process."
-  (interrupt-process nil comint-ptyp))
+  (interrupt-process nil comint-ptyp)
+  (process-send-string nil "\n"))
 
 (defvar-local python-mls-interrupt-process-function
   #'python-mls-interrupt
