@@ -317,9 +317,7 @@ normal prompt is detected."
 			       '(cursor-intangible t)) 
 	  (python-mls-compute-continuation-prompt prompt)
 	  (goto-char pmark)
-	  (run-hooks 'python-mls-after-prompt-hook)))
-       
-       (t (setq python-mls-prompt-type 'other))))))
+	  (run-hooks 'python-mls-after-prompt-hook)))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation based on the text of PROMPT."
