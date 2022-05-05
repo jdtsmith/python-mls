@@ -256,7 +256,7 @@ end of the buffer."
 Can be 'pdb, 'other, or nil for a normal input prompt.")
 
 ;;;###autoload
-(defun python-mls-check-prompt (&rest _)
+(defun python-mls-check-prompt (_process output &rest _)
   "Check for prompt, after input is sent.
 If a continuation prompt is found in the buffer, fix up comint to
 handle it.  Multi-line statements are handled directly.  If a
