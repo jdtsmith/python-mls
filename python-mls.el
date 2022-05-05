@@ -100,7 +100,6 @@ Each function should take a single argument -- the prompt type (a symbol)."
   :type 'hook
   :local t)
 
-
 (defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.:? ")
 (defun python-mls-in-continuation (&optional trim-trailing-ws)
   "Test whether we are in an continued input statement.
@@ -213,25 +212,28 @@ Does not considering final newline.  With ARG, delete that many characters."
 	  (process-send-eof))
       (delete-char arg))))
 
-(defun python-mls-interrupt ()
-  "Interrupt the process."
-  (interrupt-process nil comint-ptyp)
-  (process-send-string nil "\n"))
+(defun python-mls-interrupt (process)
+  "Interrupt the PROCESS."
+  (interrupt-process process comint-ptyp)
+  (process-send-string process "\n"))
 
 (defvar-local python-mls-interrupt-process-function
   #'python-mls-interrupt
-  "Function to interrupt the sub-job")
+  "Function to interrupt the sub-job.  Passed the process.")
 
-(defun python-mls-interrupt-quietly (&optional no-reset)
+(defun python-mls-interrupt-quietly (&optional process)
   "Interrupt the python process and bury any output.
-If NO-RESET is non-nil, do not reset the accumulation buffer."
+Use PROCESS if it is set."
   (let ((comint-preoutput-filter-functions '(python-shell-output-filter))
-        (python-shell-output-filter-in-progress t))
-    (unless no-reset (setq python-shell-output-filter-buffer nil))
-    (funcall python-mls-interrupt-process-function)
+        (python-shell-output-filter-in-progress t)
+	(python-shell-output-filter-buffer nil))
+    (funcall python-mls-interrupt-process-function process)
     (while python-shell-output-filter-in-progress
-      (accept-process-output))
-    (unless no-reset (setq python-shell-output-filter-buffer nil))))
+      (accept-process-output process)) 	; prompt received
+    ;; Interrupted command could have returned before canceled, accept
+    ;; any more output
+    (accept-process-output process 0.05))
+  (setq python-shell-output-filter-buffer nil))
 
 (defun python-mls-invisible-newline ()
   "Insert an invisible, cursor-intangible newline without moving point.
@@ -264,8 +266,7 @@ it, sanitize the history, and then bring the last input forward
 to continue.  Run the hook `python-mls-after-prompt-hook' after a
 normal prompt is detected."
   (when-let ((python-mls--check-prompt)
-	     (process ;; (get-buffer-process (current-buffer))
-	      (python-shell-get-process))
+	     (process (python-shell-get-process))
 	     (pmark (process-mark process)))
     (with-current-buffer (process-buffer process)
       (goto-char pmark)
@@ -287,7 +288,7 @@ normal prompt is detected."
 		       comint-last-input-end))
 	       (inhibit-read-only t))
 	  (setq python-mls--check-prompt nil)
-	  (python-mls-interrupt-quietly) ; re-enters!
+	  (python-mls-interrupt-quietly process) ; re-enters!
 	  (delete-region start pmark)	 ;out with the old
 	  (goto-char pmark)
 	  (insert input)
