@@ -410,7 +410,7 @@ Kill buffer when PROCESS completes on EVENT."
   (let ((buf (process-buffer process)))
     (if (buffer-live-p buf)
 	(with-current-buffer buf
-	  (run-hooks python-mls-sentinel-hooks)
+	  (run-hooks 'python-mls-sentinel-hooks)
 	  (goto-char (point-max))
 	  (insert (format "\n\n  Process %s %s" process event))
 	  (python-mls--save-input)
