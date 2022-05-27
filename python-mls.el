@@ -100,7 +100,7 @@ Each function should take a single argument -- the prompt type (a symbol)."
   :type 'hook
   :local t)
 
-(defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.:? ")
+(defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.: \s*$")
 (defun python-mls-in-continuation (&optional trim-trailing-ws)
   "Test whether we are in an continued input statement.
 We are in a continuation statement if at least one non-empty line
