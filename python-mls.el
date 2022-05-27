@@ -229,7 +229,8 @@ Does not considering final newline.  With ARG, delete that many characters."
 Use PROCESS if it is set."
   (let ((comint-preoutput-filter-functions '(python-shell-output-filter))
         (python-shell-output-filter-in-progress t)
-	(python-shell-output-filter-buffer nil))
+	(python-shell-output-filter-buffer nil)
+	(inhibit-quit nil))
     (funcall python-mls-interrupt-process-function process)
     (while python-shell-output-filter-in-progress
       (accept-process-output process)) 	; prompt received
