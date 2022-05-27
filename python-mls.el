@@ -58,7 +58,7 @@ the history."
 (defcustom python-mls-command-history-file "pyhist"
   "The file root for the command history file.
 Unless this is an absolute file name, the history file is formed
-by appending -`python-shell-interpreter' to this value, within
+by appending -`python-shell-buffer-name' to this value, within
 `user-emacs-directory'.  To change the size of the history ring,
 see the variable `comint-input-ring-size'.  History is only saved
 if the variable `python-mls-save-command-history' is non-nil."
@@ -501,7 +501,7 @@ If DISABLE is non-nil, disable instead."
 	    (setq python-mls-command-history-file
 		  (expand-file-name (concat python-mls-command-history-file
 					    "-"
-					    python-shell-interpreter)
+					    python-shell-buffer-name)
 				    user-emacs-directory)))
 	  (when (stringp python-mls-command-history-file)
 	    (set (make-local-variable 'comint-input-ring-file-name)
