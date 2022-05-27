@@ -197,6 +197,10 @@ Omits extra newlines at end, and preserves (some) text properties."
 	 0 (length last)
 	 '(line-prefix nil font-lock-face nil fontified nil) last))))
 
+(defun python-mls-send-eof (&optional proc)
+  (setq python-mls--check-prompt t)
+  (process-send-eof proc))
+
 (defun python-mls-delete-or-eof (arg)
   "Delete or send process EOF if at end of buffer.
 Does not considering final newline.  With ARG, delete that many characters."
@@ -208,8 +212,7 @@ Does not considering final newline.  With ARG, delete that many characters."
 	(progn
 	  (goto-char (point-max))
 	  (comint-kill-input)
-	  (setq python-mls--check-prompt t)
-	  (process-send-eof))
+	  (python-mls-send-eof proc))
       (delete-char arg))))
 
 (defun python-mls-interrupt (process)
