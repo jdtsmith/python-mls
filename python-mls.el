@@ -527,6 +527,7 @@ If DISABLE is non-nil, disable instead."
 	 parse-sexp-lookup-properties t
 	 font-lock-fontify-region-function
 	 #'python-mls--fontify-region-function
+	 comint-move-point-for-output t
 	 comint-input-sender #'python-mls-send-input)
 	(setq python-mls-font-lock-keywords
 	      (symbol-value
