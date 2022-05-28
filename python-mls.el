@@ -1,6 +1,6 @@
 ;;; python-mls.el --- Multi-line shell for (i)Python  -*-lexical-binding: t-*-
 
-;; Copyright (C) 2021 J.D. Smith
+;; Copyright (C) 2021-2022 J.D. Smith
 
 ;; Author: J.D. Smith
 ;; Homepage: https://github.com/jdtsmith/python-mls
