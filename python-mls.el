@@ -257,7 +257,8 @@ end of the buffer."
   "Last prompt before recent send.")
 (defvar-local python-mls-prompt-type nil
   "The type of prompt.
-Can be 'pdb, 'other, 'unknown, or nil for a normal input prompt.")
+Can be t for normal input prompts, 'pdb for a (i)PDB prompt, or
+'unknown for all others.")
 
 ;;;###autoload
 (defun python-mls-check-prompt (_process output &rest _)
@@ -312,7 +313,7 @@ normal prompt is detected."
 			    python-shell-prompt-pdb-regexp
 			    prompt)
 			   'pdb)
-			  (t nil))
+			  (t t))
 		    python-mls--check-prompt nil)
 	      (add-text-properties (1- pmark) (point-at-bol)
 				   '(cursor-intangible t)) 
