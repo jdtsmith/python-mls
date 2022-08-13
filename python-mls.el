@@ -307,7 +307,7 @@ normal prompt is detected."
 	    (let* ((prompt (match-string 0))
 		   (inhibit-read-only t))
 	      (setq ptype
-		    (cond ((< (match-end 0) (point-max)) 'other) ; extra stuff at end
+		    (cond ((< (match-end 0) (point-max)) 'unknown) ; extra stuff at end
 			  ((string-match-p
 			    python-shell-prompt-pdb-regexp
 			    prompt)
