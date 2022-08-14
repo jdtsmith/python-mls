@@ -124,7 +124,9 @@ after the output field will be trimmed."
 	    (line-number-at-pos prompt-end)))))
 
 (defun python-mls--indent-line ()
-  "Indent line, narrowing to region after prompt if in continuation."
+  "Indent line, narrowing to region after prompt if in continuation.
+If the line is at the end of the buffer, insert an invisible
+newline to allow for a prefix prompt."
   (if-let ((end (cdr-safe comint-last-prompt)))
       (save-restriction
 	(narrow-to-region end (point-max))
@@ -242,7 +244,7 @@ Use PROCESS if it is set."
 (defun python-mls-invisible-newline ()
   "Insert an invisible, cursor-intangible newline without moving point.
 Since continuation prompts use 'line-prefix property, and the
-line after a final newline is entirely empty, it has not prompt.
+line after a final newline is entirely empty, it has no prompt.
 To solve this we keep an invisible and intangible newline at the
 end of the buffer."
   (save-excursion
