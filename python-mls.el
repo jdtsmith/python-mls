@@ -319,11 +319,11 @@ time a normal prompt is detected."
 	    (let ((inhibit-read-only t))
 	      (add-text-properties (line-beginning-position) (1- pmark)
 				   '(cursor-intangible t))))
+	  (goto-char pmark)
 	  (when (not (eq ptype python-mls-prompt-type))
 	    (setq python-mls-prompt-type ptype)
 	    (run-hook-with-args 'python-mls-prompt-change-functions ptype))
-	  (run-hooks 'python-mls-after-prompt-hook)
-	  (goto-char (point-max)))))))
+	  (run-hooks 'python-mls-after-prompt-hook))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation based on the text of PROMPT."
