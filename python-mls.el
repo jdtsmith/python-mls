@@ -485,7 +485,7 @@ If DISABLE is non-nil, disable instead."
 			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
     (add-hook 'inferior-python-mode-hook #'python-mls-mode)
     (add-hook 'python-mode-hook #'python-mls-python-setup)
-    
+    (setq-default python-shell-font-lock-enable nil) ; we do our own
     ;; Fix bug in rear-nonsticky
     (if (version< emacs-version "28")
 	(advice-add 'comint-output-filter :after
@@ -518,8 +518,6 @@ If DISABLE is non-nil, disable instead."
 	(setq-local comint-history-isearch 'dwim)
 
 	;; font-lock handling
-	(if (derived-mode-p 'inferior-python-mode)
-	    (python-shell-font-lock-turn-off)) ;We'll do in-buffer font-lock ourselves!
 	(setq-local
 	 font-lock-keywords-only nil
 	 syntax-propertize-function python-syntax-propertize-function
