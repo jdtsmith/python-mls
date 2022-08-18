@@ -270,8 +270,10 @@ handle it.  Multi-line statements are handled directly.  If a
 single command sent to (i)Python is the start of multi-line
 statment, the process will return a continuation prompt.  Remove
 it, sanitize the history, and then bring the last input forward
-to continue.  Run the hook `python-mls-after-prompt-hook' after a
-normal prompt is detected."
+to continue.  When the prompt type changes, run the hooks in
+`python-mls-prompt-change-functions' (supplying the type as the
+argument).  Run the hooks in `python-mls-after-prompt-hook' each
+time a normal prompt is detected."
   (when-let ((python-mls--check-prompt)
 	     (process (python-shell-get-process))
 	     (pmark (process-mark process)))
@@ -280,14 +282,15 @@ normal prompt is detected."
       (forward-line 0)
       (if (and (looking-at python-mls-continuation-prompt-regexp)
 	       (or (not comint-process-echoes) (string-empty-p output)))
-	  ;; Continuation prompt: comint performs input echo deletion in
-	  ;; comint-send-string, which implicitly calls this filter
-	  ;; function while waiting for echoed input.  But
-	  ;; echo-detection/deletion must run _first_ before our
-	  ;; continuation prompt deletion (which itself would delete the
-	  ;; echoed input).  Since comint-send-input calls us finally
-	  ;; with an empty string (after echo detection), if
-	  ;; process-echoes is set, check and run this only at that time.
+	  ;; Continuation prompt: comint performs input echo deletion
+	  ;; in comint-send-string, which implicitly calls this filter
+	  ;; function while waiting for echoed input to appear.  But
+	  ;; echo-detection/deletion must run _first_, before our
+	  ;; continuation prompt deletion (which itself would delete
+	  ;; the echoed input).  Since comint-send-input calls us
+	  ;; finally with an empty string (after echo detection), if
+	  ;; process-echoes is set, check and run this only at that
+	  ;; time.
 	  (let* ((start (marker-position comint-last-input-start))
 		 (input (buffer-substring-no-properties
 			 start
@@ -309,7 +312,7 @@ normal prompt is detected."
 				'pdb)
 			       (t t))	; just a normal prompt
 		       'unknown))
-	      (python-mls--check-prompt nil))
+	      (python-mls--check-prompt nil)) ; inhibit re-entry
 	  (if (eq ptype t)
 	      (python-mls-compute-continuation-prompt (match-string 0)))
 	  (unless (eq ptype 'unknown)
