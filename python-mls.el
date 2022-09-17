@@ -273,7 +273,15 @@ it, sanitize the history, and then bring the last input forward
 to continue.  When the prompt type changes, run the hooks in
 `python-mls-prompt-change-functions' (supplying the type as the
 argument).  Run the hooks in `python-mls-after-prompt-hook' each
-time a normal prompt is detected."
+time a know prompt type is detected.  Note that an unknown prompt
+type could correspond either to a real non-standard
+prompt (e.g. from a python call to input()) or to a 'false
+prompt', which may appear if the process produces output in
+chunks.  This is because comint is configured to mark any text
+not ending in a newline as a prompt, and has no way of knowing
+whether all of the output is yet received.  Any hook functions on
+`python-mls-prompt-change-functions' should guard against this
+possibility by examining their PTYPE argument. "
   (when-let ((python-mls--check-prompt)
 	     (process (python-shell-get-process))
 	     (pmark (process-mark process)))
@@ -311,7 +319,7 @@ time a normal prompt is detected."
 						(match-string 0))
 				'pdb)
 			       (t t))	; just a normal prompt
-		       'unknown))
+		       'unknown)) 	; possibly a false prompt due to chunked output
 	      (python-mls--check-prompt nil)) ; inhibit re-entry
 	  (if (eq ptype t)
 	      (python-mls-compute-continuation-prompt (match-string 0)))
@@ -323,7 +331,8 @@ time a normal prompt is detected."
 	  (when (not (eq ptype python-mls-prompt-type))
 	    (setq python-mls-prompt-type ptype)
 	    (run-hook-with-args 'python-mls-prompt-change-functions ptype))
-	  (run-hooks 'python-mls-after-prompt-hook))))))
+	  (unless (eq ptype 'unknown) 	; could be a "false prompt"
+	    (run-hooks 'python-mls-after-prompt-hook)))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation based on the text of PROMPT."
