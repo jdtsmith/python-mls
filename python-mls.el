@@ -344,7 +344,21 @@ possibility by examining their PTYPE argument. "
 	      (propertize
 	       (concat (make-string spaces ?\s) "..." (if has-colon ": " " "))
 	       'font-lock-face 'comint-highlight-prompt)))))
-  
+
+(defun python-mls-strip-last-output-read-only ()
+  "Remove any spurious read-only properties from the output.
+Since python output can arrive in chunks, and
+`inferior-python-mode' enables `comint-prompt-read-only', a
+number of false prompts (text not ending in a newline) may be
+encountered before the final true prompt.  Comint sets read only
+properties on these false prompts, but does not clear them.  When
+used as a hook on `python-mls-after-prompt-hook', this function
+does so."
+  (if-let ((start comint-last-input-end)
+	   (prompt (car-safe comint-last-prompt))
+	   (inhibit-read-only t))
+      (remove-text-properties start (1- prompt) '(read-only))))
+
 (defun python-mls-move-or-history (up &optional arg nocont-move)
   "Move line or recall command history.
 When in the first or last line of input, do
@@ -494,6 +508,7 @@ If DISABLE is non-nil, disable instead."
 			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
     (add-hook 'inferior-python-mode-hook #'python-mls-mode)
     (add-hook 'python-mode-hook #'python-mls-python-setup)
+    (add-hook 'python-mls-after-prompt-hook #'python-mls-strip-last-output-read-only)
     (setq-default python-shell-font-lock-enable nil) ; we do our own
     ;; Fix bug in rear-nonsticky
     (if (version< emacs-version "28")
