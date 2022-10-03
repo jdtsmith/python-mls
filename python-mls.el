@@ -65,12 +65,6 @@ if the variable `python-mls-save-command-history' is non-nil."
   :group 'python-mls
   :type 'file)
 
-(defcustom python-mls-after-prompt-hook '()
-  "Hook run each time a new input prompt is found."
-  :type 'hook
-  :local t
-  :group 'python-mls)
-
 (defcustom python-mls-kill-buffer-process-quit nil
   "Whether to kill the python buffer when the process completes."
   :group 'python-mls
@@ -99,6 +93,9 @@ Each function should take a single argument -- the prompt type (a symbol)."
   :group 'python-mls
   :type 'hook
   :local t)
+
+(defvar-local python-mls-after-prompt-hook '()
+  "Hook run each time a new input prompt is found.")
 
 (defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.: \s*$")
 (defun python-mls-in-continuation (&optional trim-trailing-ws)
