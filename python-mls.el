@@ -70,6 +70,12 @@ if the variable `python-mls-save-command-history' is non-nil."
   :group 'python-mls
   :type 'boolean)
 
+(defcustom python-mls-multiline-history-modifier '(shift)
+  "Modifier key for up/down arrow multi-line history navigation.
+List of symbols, or nil to disable."
+  :group 'python-mls
+  :type '(choice (const :tag "None" nil) (repeat :tag "List of modifiers" symbol)))
+
 (defcustom python-mls-import-python-nav-command-list
   '(python-nav-backward-block
     python-nav-forward-block
@@ -503,6 +509,16 @@ If DISABLE is non-nil, disable instead."
 	(if (version< emacs-version "28")
 	    (advice-remove #'comint-output-filter
 			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
+    ;; Shift up/C-p: skips blocks
+    (when python-mls-multiline-history-modifier
+      (dolist (key (where-is-internal 'previous-line))
+	(let ((new (vector `(,@python-mls-multiline-history-modifier
+			     ,(aref key 0)))))
+	  (define-key python-mls-mode-map new 'python-mls-noblock-up-or-history)))
+      (dolist (key (where-is-internal 'next-line))
+	(let ((new (vector `(,@python-mls-multiline-history-modifier
+			     ,(aref key 0)))))
+	  (define-key python-mls-mode-map new 'python-mls-noblock-down-or-history))))
     (add-hook 'inferior-python-mode-hook #'python-mls-mode)
     (add-hook 'python-mode-hook #'python-mls-python-setup)
     (setq-default python-shell-font-lock-enable nil) ; we do our own
@@ -563,14 +579,6 @@ If DISABLE is non-nil, disable instead."
 	;; We run this :after so that  `comint-last-prompt' is already set
 	(advice-add #'comint-output-filter :after #'python-mls-check-prompt)
 	(cursor-intangible-mode 1)
-
-	;; Shift up/C-p: skips blocks
-	(dolist (key (where-is-internal 'previous-line))
-	  (let ((new (vector `(shift ,(aref key 0)))))
-	    (define-key python-mls-mode-map new 'python-mls-noblock-up-or-history)))
-	(dolist (key (where-is-internal 'next-line))
-	  (let ((new (vector `(shift ,(aref key 0)))))
-	    (define-key python-mls-mode-map new 'python-mls-noblock-down-or-history)))
 
 	;; indentation
 	(electric-indent-local-mode -1) ; We handle [Ret] indentation ourselves
