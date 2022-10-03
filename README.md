@@ -1,6 +1,6 @@
 # python-MLS: multi-line Python shell commands in Emacs
 
-<img src="https://user-images.githubusercontent.com/93749/134784188-7ac9ee9d-8e29-4c7f-82d7-2881e96d4bd2.gif" align="right">
+<img src="https://user-images.githubusercontent.com/93749/134784188-7ac9ee9d-8e29-4c7f-82d7-2881e96d4bd2.gif">
 
 Python-MLS (multi-line shell) is an Emacs minor mode for working directly with multi-line Python commands in the REPL. It builds on and automatically extends python-mode's inferior shell capabilities.
 
