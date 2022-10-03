@@ -75,5 +75,9 @@ A few options are available for configuration, including whether and where to sa
 - **My py-XXX functions aren't working!** There are two popular packages providing python-mode for source buffers and the shell.  python-MLS makes use of the built-in python.el version, as opposed to the [MELPA package](https://melpa.org/#/python-mode).  Either can be used in the python _buffer_ with python-MLS. But if you use the non-builtin python-mode, you'll have to ensure the python.el shell is run.  
 
 - **Any other tips?**  
-   - Get to know the useful commands provided by `comint` (which most Emacs inferior shells use): `C-c C-u`: `comint-kill-input`; `C-c C-o`: `comint-kill-output`; `C-c M-o`: `comint-clear-buffer`, and more.
+   - Get to know the useful commands provided by `comint` (which most Emacs inferior shells use): 
+     - `C-c C-u`: `comint-kill-input`
+     - `C-c C-o`: `comint-kill-output`
+     - `C-c M-o`: `comint-clear-buffer`
+     - and more.
    - Python-MLS binds a few keyboard shortcuts for python navigation for use after the prompt. See `python-mls-import-python-nav-command-list` to add more. 
