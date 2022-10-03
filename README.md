@@ -38,7 +38,7 @@ Using python-MLS is as simple as entering the first of a multi-line statement at
 # Keys
 
 - `Up`/`Down` (or `C-p`/`C-n`): when on the last line in that direction, navigate history, otherwise move _within_ multi-line statements. 
--  `S-Up`/`S-Down` (or `C-S-p`/`C-S-n`): skip through multi-line statements in command history without navigating inside them.
+-  `S-Up`/`S-Down` (or `C-S-p`/`C-S-n`): skip through multi-line statements in command history without navigating inside them.  To configure the modifier used, see `python-mls-multiline-history-modifier`. 
 - `S-Ret` or `M-Ret`: send a multi-line statement from anywhere within it.
 -  Two blank lines at statement end: send the multi-line statement.
 - `C-j`: break an initial line into a multi-line command anywhere. 
