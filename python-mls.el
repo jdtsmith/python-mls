@@ -505,7 +505,6 @@ If DISABLE is non-nil, disable instead."
 			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
     (add-hook 'inferior-python-mode-hook #'python-mls-mode)
     (add-hook 'python-mode-hook #'python-mls-python-setup)
-    (add-hook 'python-mls-after-prompt-hook #'python-mls-strip-last-output-read-only)
     (setq-default python-shell-font-lock-enable nil) ; we do our own
     ;; Fix bug in rear-nonsticky
     (if (version< emacs-version "28")
@@ -575,7 +574,9 @@ If DISABLE is non-nil, disable instead."
 
 	;; indentation
 	(electric-indent-local-mode -1) ; We handle [Ret] indentation ourselves
-	(setq-local indent-line-function #'python-mls--indent-line))
+	(setq-local indent-line-function #'python-mls--indent-line)
+	(add-hook 'python-mls-after-prompt-hook
+		  #'python-mls-strip-last-output-read-only -95 t))
     (python-mls-setup 'disable)
     (message "Python-MLS disabled for future inferior python shells.")))
 
