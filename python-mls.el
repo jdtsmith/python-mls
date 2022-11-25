@@ -335,9 +335,12 @@ possibility by examining their PTYPE argument. "
 				   '(cursor-intangible t))))
 	  (goto-char pmark)
 	  (when (not (eq ptype python-mls-prompt-type))
-	    (setq python-mls-prompt-type ptype)
-	    (run-hook-with-args 'python-mls-prompt-change-functions ptype))
-	  (unless (eq ptype 'unknown) 	; could be a "false prompt"
+	    ;; inhibit change functions to or from 'unknown prompt type
+	    (let ((no-change (or (eq ptype 'unknown) (eq python-mls-prompt-type 'unknown))))
+	      (setq python-mls-prompt-type ptype)
+	      (unless no-change
+		(run-hook-with-args 'python-mls-prompt-change-functions ptype))))
+	  (unless (eq ptype 'unknown)
 	    (run-hooks 'python-mls-after-prompt-hook)))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
