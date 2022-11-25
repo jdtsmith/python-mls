@@ -269,11 +269,14 @@ Can be t for normal input prompts, 'pdb for a (i)PDB prompt, or
 (defun python-mls-check-prompt (_process output &rest _)
   "Check for prompt, after input is sent.
 If a continuation prompt is found in the buffer, fix up comint to
-handle it.  Multi-line statements are handled directly.  If a
-single command sent to (i)Python is the start of multi-line
-statment, the process will return a continuation prompt.  Remove
-it, sanitize the history, and then bring the last input forward
-to continue.  When the prompt type changes, run the hooks in
+handle it.  Use as an :after advice to `comint-ouput-filter',
+checking for empty OUTPUT.
+
+Multi-line statements are handled directly.  If a single command
+sent to (i)Python is the start of multi-line statment, the
+process will return a continuation prompt.  Remove it, sanitize
+the history, and then bring the last input forward to continue.
+When the prompt type changes, run the hooks in
 `python-mls-prompt-change-functions' (supplying the type as the
 argument).  Run the hooks in `python-mls-after-prompt-hook' each
 time a know prompt type is detected.  Note that an unknown prompt
@@ -317,16 +320,16 @@ possibility by examining their PTYPE argument. "
 		(ring-remove comint-input-ring 0)))
 	;; All other prompts
 	(let ((ptype (if (looking-at python-shell--prompt-calculated-input-regexp)
-			 (cond ((< (match-end 0) (point-max)) 'unknown) 
+			 (cond ((< (match-end 0) (point-max)) 'unknown) ;; extra stuff
 			       ((string-match-p python-shell-prompt-pdb-regexp
 						(match-string 0))
 				'pdb)
 			       (t t))	; just a normal prompt
-		       'unknown)) 	; possibly a false prompt due to chunked output
+		       'unknown)) ; likely a false prompt due to chunked output
 	      (python-mls--check-prompt nil)) ; inhibit re-entry
 	  (if (eq ptype t)
 	      (python-mls-compute-continuation-prompt (match-string 0)))
-	  (unless (eq ptype 'unknown)
+	  (unless (eq ptype 'unknown) 	; just ignore those
 	    (let ((inhibit-read-only t))
 	      (add-text-properties (line-beginning-position) (1- pmark)
 				   '(cursor-intangible t))))
