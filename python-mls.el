@@ -376,7 +376,7 @@ lines.  Otherwise just move the line.  Move down unless UP is
 non-nil.  Also move normally inside of continued commands, unless
 NOCONT-MOVE is non-nil."
   (interactive)
-  (let* ((prompt (cdr comint-last-prompt))
+  (let* ((prompt (process-mark (get-buffer-process (current-buffer))))
 	 (arg (or arg 1))
 	 (arg (if up arg (- arg))))
     (if (and prompt
