@@ -202,9 +202,14 @@ Omits extra newlines at end, and preserves (some) text properties."
 	 0 (length last)
 	 '(line-prefix nil font-lock-face nil fontified nil) last))))
 
+
+(defvar-local python-mls-send-eof-function 
+  #'process-send-eof
+  "Function to raise an end-of-file condition.  Passed the process.")
+
 (defun python-mls-send-eof (&optional proc)
   (setq python-mls--check-prompt t)
-  (process-send-eof proc))
+  (funcall python-mls-send-eof-function proc))
 
 (defun python-mls-delete-or-eof (arg)
   "Delete or send process EOF if at end of buffer.
