@@ -87,6 +87,13 @@ KEY."
   :group 'python-mls
   :type '(repeat (choice function (cons function key-sequence))))
 
+(defcustom python-mls-prompt-regexp nil
+  "The prompt regular expression to match input and pdb prompts.
+Defaults to `python-shell--prompt-calculated-input-regexp'."
+  :group 'python-mls
+  :type '(choice (const :tag "Default" nil) regexp)
+  :local t)
+
 (defcustom python-mls-prompt-change-functions nil
   "A list of functions to run when the prompt type changes.
 Each function should take a single argument -- the prompt type (a symbol)."
@@ -101,7 +108,7 @@ Each function should take a single argument -- the prompt type (a symbol)."
   :local t)
 
 (defvar-local python-mls-after-prompt-hook '()
-  "Hook run each time a new input prompt is found.")
+  "Hook run each time a new (known) input prompt arrives.")
 
 (defvar python-mls-continuation-prompt-regexp "^\s*\\.\\.\\.: \s*$")
 (defun python-mls-in-continuation (&optional trim-trailing-ws)
@@ -284,8 +291,8 @@ the history, and then bring the last input forward to continue.
 When the prompt type changes, run the hooks in
 `python-mls-prompt-change-functions' (supplying the type as the
 argument).  Run the hooks in `python-mls-after-prompt-hook' each
-time a know prompt type is detected.  Note that an unknown prompt
-type could correspond either to a real non-standard
+time a known prompt type is detected.  Note that an unknown
+prompt type could correspond either to a real non-standard
 prompt (e.g. from a python call to input()) or to a 'false
 prompt', which may appear if the process produces output in
 chunks.  This is because comint is configured to mark any text
@@ -324,7 +331,7 @@ possibility by examining their PTYPE argument. "
 		     (not (ring-empty-p comint-input-ring)))
 		(ring-remove comint-input-ring 0)))
 	;; All other prompts
-	(let ((ptype (if (looking-at python-shell--prompt-calculated-input-regexp)
+	(let ((ptype (if (looking-at python-mls-prompt-regexp)
 			 (cond ((< (match-end 0) (point-max)) 'unknown) ;; extra stuff
 			       ((string-match-p python-shell-prompt-pdb-regexp
 						(match-string 0))
@@ -544,6 +551,11 @@ If DISABLE is non-nil, disable instead."
   :keymap python-mls-mode-map
   (if python-mls-mode
       (progn
+	;; input matcher
+	(unless python-mls-prompt-regexp
+	  (setq-local python-mls-prompt-regexp
+		      python-shell--prompt-calculated-input-regexp))
+	
 	;; command history
 	(when python-mls-save-command-history
 	  (make-local-variable 'python-mls-command-history-file)
