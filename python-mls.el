@@ -1,12 +1,12 @@
 ;;; python-mls.el --- Multi-line shell for (i)Python  -*-lexical-binding: t-*-
 
-;; Copyright (C) 2021-2022 J.D. Smith
+;; Copyright (C) 2021-2023 J.D. Smith
 
 ;; Author: J.D. Smith
 ;; Homepage: https://github.com/jdtsmith/python-mls
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: languages, processes
-;; Version: 0.1.4
+;; Version: 0.1.5
 
 ;;; Commentary:
 
