@@ -238,8 +238,8 @@ Does not considering final newline.  With ARG, delete that many characters."
   (process-send-string process "\n"))
 
 (defvar-local python-mls-interrupt-process-function
-  #'python-mls-interrupt
-  "Function to interrupt the sub-job.  Passed the process.")
+  #'python-mls-interrupt-quietly
+  "Function to interrupt the sub-job quietly.  Passed the process.")
 
 (defun python-mls-interrupt-quietly (&optional process)
   "Interrupt the python process and bury any output.
@@ -248,7 +248,7 @@ Use PROCESS if it is set."
         (python-shell-output-filter-in-progress t)
 	(python-shell-output-filter-buffer nil)
 	(inhibit-quit nil))
-    (funcall python-mls-interrupt-process-function process)
+    (interrupt-process process comint-ptyp)
     (while python-shell-output-filter-in-progress
       (accept-process-output process)) 	; prompt received
     ;; Interrupted command could have returned before canceled, accept
@@ -323,7 +323,7 @@ possibility by examining their PTYPE argument. "
 			 comint-last-input-end))
 		 (inhibit-read-only t))
 	    (let ((python-mls--check-prompt nil)) ; prevent reentry
-	      (python-mls-interrupt-quietly process)) ; re-enters!
+	      (funcall python-mls-interrupt-process-function process)) ; re-enters!
 	    (delete-region start pmark) ;out with the old
 	    (insert input)
 	    (funcall indent-line-function)
