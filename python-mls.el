@@ -402,7 +402,9 @@ NOCONT-MOVE is non-nil."
 			 (skip-chars-backward "\r\n" (1- (point)))
 			 (line-number-at-pos))))))
 	(comint-previous-input arg)
-      (line-move (- arg)))))
+      (line-move (- arg))
+      ;; If we snuck behind the prompt, jump to it
+      (if (< (point) prompt) (goto-char prompt)))))
 
 (defun python-mls-up-or-history (&optional arg)
   "When in last line of process buffer, move to previous input.
