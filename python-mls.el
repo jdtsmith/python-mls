@@ -611,7 +611,7 @@ If DISABLE is non-nil, disable instead."
 	(add-hook 'python-mls-after-prompt-hook
 		  #'python-mls-strip-last-output-read-only -95 t))
     (python-mls-setup 'disable)
-    (message "Python-MLS disabled for future inferior python shells.")))
+    (message "Python-MLS disabled for future python shells.")))
 
 (provide 'python-mls)
 
