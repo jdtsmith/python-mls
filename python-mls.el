@@ -162,7 +162,7 @@ position in the buffer to go to."
   "Strip space and newlines from end of input and send.
 Use as `comint-input-sender'."
   (setq python-mls--check-prompt t)
-  (python-shell-send-string input proc))
+  (python-shell-send-string (string-trim-right input) proc))
 
 (defun python-mls-get-old-input ()
   "Get old input.
