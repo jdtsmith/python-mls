@@ -158,11 +158,13 @@ position in the buffer to go to."
 
 (defvar-local python-mls--check-prompt t) ;; start checking by default
 
-(defun python-mls-send-input (proc input)
-  "Strip space and newlines from end of input and send.
+(defun python-mls-send-input (process input)
+  "Send INPUT to PROCESS using appropriate command.
 Use as `comint-input-sender'."
   (setq python-mls--check-prompt t)
-  (python-shell-send-string (string-trim-right input) proc))
+  (if (string-match ".\n+." input) ;workaround new python send-string logic
+      (python-shell-send-string input process)
+    (comint-send-string process (concat input "\n")))) ; just send one-liner
 
 (defun python-mls-get-old-input ()
   "Get old input.
