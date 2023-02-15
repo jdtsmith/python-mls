@@ -173,7 +173,9 @@ Omits extra newlines at end, and preserves (some) text properties."
   (let* ((bof (field-beginning))
 	 (field-prop (get-char-property bof 'field))
 	 (str (if (not field-prop) ; regular input
-		  (field-string bof)
+		  (if (and comint-last-output-start
+			   (>= bof comint-last-output-start))
+		      (field-string bof) "")
 		(comint-bol)
 		(buffer-substring
 		 (point)
@@ -181,9 +183,9 @@ Omits extra newlines at end, and preserves (some) text properties."
 		     (line-end-position)
 		   (field-end))))))
     (remove-text-properties 0 (length str)
-			    '(fontified nil
-					font-lock-face  nil
-					help-echo nil mouse-face nil)
+			    '( fontified nil
+			       font-lock-face  nil
+			       help-echo nil mouse-face nil)
 			    str)
     (string-trim-right str "[\n\r]+")))
 
