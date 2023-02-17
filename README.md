@@ -21,7 +21,7 @@ Python-MLS (multi-line shell) is an Emacs minor mode for working directly with m
   
 # Installation
 
-Simply install python-MLS from this repository or MELPA, and use `require` or `use-package` to load it.  To enable, arrange to have `python-mls-setup` called, e.g.:
+Simply install python-MLS from this repository or MELPA, and use `require` or `use-package` to load it.  To enable, arrange to have `python-mls-setup` called immediately after `python-mls` is loaded, e.g.:
 
 ```elisp
 (use-package python-mls
@@ -30,7 +30,7 @@ Simply install python-MLS from this repository or MELPA, and use `require` or `u
 	(python-mls-setup))
 ```
 
-Python-MLS will then  automatically enable itself in your python inferior shell, which you can start however you normally do (e.g. `C-c C-p` in a Python buffer, or `M-x run-python`).  
+Python-MLS will then  automatically enable itself in your python inferior shell, which you can start however you normally do (e.g. `C-c C-p` in a Python buffer, or `M-x run-python`).  Note: if you use `:bind` in your use-package stanza, you should add `:defer nil` to ensure the setup is run as soon as `python.el` is loaded.
 
 # Usage
 
