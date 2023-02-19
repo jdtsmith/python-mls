@@ -502,6 +502,17 @@ Kill buffer when PROCESS completes on EVENT."
 		   (python-mls-narrowed-command (consp cmd)))
 	       (substitute-key-definition
 		cmd (python-mls-narrowed-command cmd) map python-mode-map)))
+
+    (when python-mls-multiline-history-modifier
+      ;; Shift up/C-p: skips blocks
+      (dolist (key (where-is-internal 'previous-line))
+	(let ((new (vector `(,@python-mls-multiline-history-modifier
+			     ,(aref key 0)))))
+	  (define-key map new 'python-mls-noblock-up-or-history)))
+      (dolist (key (where-is-internal 'next-line))
+	(let ((new (vector `(,@python-mls-multiline-history-modifier
+			     ,(aref key 0)))))
+	  (define-key map new 'python-mls-noblock-down-or-history))))
     map))
 
 (defun python-mls--comint-output-filter-fix-rear-nonsticky (&rest _r)
@@ -521,35 +532,7 @@ Used as :after advice for `comint-output-filter'."
   (make-local-variable 'yank-excluded-properties) ; for python-mls
   (cl-pushnew 'line-prefix yank-excluded-properties))
 
-;;;###autoload
-(defun python-mls-setup (&optional disable)
-  "Enable python-mls for python shells and buffers.
-If DISABLE is non-nil, disable instead."
-  (interactive)
-  (if disable
-      (progn
-	(remove-hook 'inferior-python-mode-hook #'python-mls-mode)
-	(remove-hook 'python-mode-hook #'python-mls-python-setup)
-	(if (version< emacs-version "28")
-	    (advice-remove #'comint-output-filter
-			   #'python-mls--comint-output-filter-fix-rear-nonsticky)))
-    ;; Shift up/C-p: skips blocks
-    (when python-mls-multiline-history-modifier
-      (dolist (key (where-is-internal 'previous-line))
-	(let ((new (vector `(,@python-mls-multiline-history-modifier
-			     ,(aref key 0)))))
-	  (define-key python-mls-mode-map new 'python-mls-noblock-up-or-history)))
-      (dolist (key (where-is-internal 'next-line))
-	(let ((new (vector `(,@python-mls-multiline-history-modifier
-			     ,(aref key 0)))))
-	  (define-key python-mls-mode-map new 'python-mls-noblock-down-or-history))))
-    (add-hook 'inferior-python-mode-hook #'python-mls-mode)
-    (add-hook 'python-mode-hook #'python-mls-python-setup)
-    (setq-default python-shell-font-lock-enable nil) ; we do our own
-    ;; Fix bug in rear-nonsticky
-    (if (version< emacs-version "28")
-	(advice-add 'comint-output-filter :after
-		    #'python-mls--comint-output-filter-fix-rear-nonsticky))))
+(make-obsolete 'python-mls-setup 'python-mls-mode ">v0.2")
 
 ;;;###autoload
 (define-minor-mode python-mls-mode
@@ -557,6 +540,8 @@ If DISABLE is non-nil, disable instead."
   :keymap python-mls-mode-map
   (if python-mls-mode
       (progn
+	(add-hook 'python-mode-hook #'python-mls-python-setup)
+	
 	;; input matcher
 	(unless python-mls-prompt-regexp
 	  (setq-local python-mls-prompt-regexp
@@ -585,6 +570,7 @@ If DISABLE is non-nil, disable instead."
 
 	;; font-lock handling
 	(setq-local
+	 python-shell-font-lock-enable nil ; we do our own
 	 font-lock-keywords-only nil
 	 syntax-propertize-function python-syntax-propertize-function
 	 comment-start-skip "#+\\s-*"
@@ -601,6 +587,7 @@ If DISABLE is non-nil, disable instead."
 		python-font-lock-keywords (font-lock-value-in-major-mode
 					   font-lock-maximum-decoration))))
 
+	;; input and history search
 	(setq-local comint-get-old-input #'python-mls-get-old-input
 		    comint-history-isearch 'dwim)
 	(add-hook 'comint-input-filter-functions
@@ -615,8 +602,14 @@ If DISABLE is non-nil, disable instead."
 	(setq-local indent-line-function #'python-mls--indent-line)
 	(add-hook 'python-mls-after-prompt-hook
 		  #'python-mls-strip-last-output-read-only -95 t))
-    (python-mls-setup 'disable)
+    (remove-hook 'python-mode-hook #'python-mls-python-setup)
     (message "Python-MLS disabled for future python shells.")))
+
+
+;; Fix bug in rear-nonsticky
+(if (version< emacs-version "28")
+    (advice-add 'comint-output-filter :after
+		#'python-mls--comint-output-filter-fix-rear-nonsticky))
 
 (provide 'python-mls)
 
