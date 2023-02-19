@@ -306,7 +306,8 @@ whether all of the output is yet received.  Any hook functions on
 `python-mls-prompt-change-functions' should guard against this
 possibility by examining their PTYPE argument. "
   (when-let ((python-mls--check-prompt)
-	     (process (get-buffer-process (current-buffer)))
+	     (buf (current-buffer))
+	     (process (get-buffer-process buf))
 	     (pmark (process-mark process)))
     (goto-char pmark)
     (forward-line 0)
@@ -363,10 +364,11 @@ possibility by examining their PTYPE argument. "
 	    (run-at-time
 	     0 nil
 	     (lambda ()
-	       (if run-pcf
-		   (run-hook-with-args
-		    'python-mls-prompt-change-functions ptype))
-	       (if run-pa (run-hooks 'python-mls-after-prompt-hook)))))))))
+	       (with-current-buffer buf
+		 (if run-pcf
+		     (run-hook-with-args
+		      'python-mls-prompt-change-functions ptype))
+		 (if run-pa (run-hooks 'python-mls-after-prompt-hook))))))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation based on the text of PROMPT."
