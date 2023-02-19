@@ -283,7 +283,7 @@ Can be t for normal input prompts, 'pdb for a (i)PDB prompt, or
 'unknown for all others.")
 
 ;;;###autoload
-(defun python-mls-check-prompt (_process output &rest _)
+(defun python-mls-check-prompt (output)
   "Check for prompt, after input is sent.
 If a continuation prompt is found in the buffer, fix up comint to
 handle it.  Use as an :after advice to `comint-ouput-filter',
@@ -342,7 +342,8 @@ possibility by examining their PTYPE argument. "
 			      'pdb)
 			     (t t))	; just a normal prompt
 		     'unknown)) ; likely a false prompt due to chunked output
-	    (python-mls--check-prompt nil)) ; inhibit re-entry
+	    (python-mls--check-prompt nil)
+	    run-pcf run-pa)		; inhibit re-entry
 	(if (eq ptype t)
 	    (python-mls-compute-continuation-prompt (match-string 0)))
 	(unless (eq ptype 'unknown) 	; just ignore those
@@ -352,12 +353,20 @@ possibility by examining their PTYPE argument. "
 	(goto-char pmark)
 	(when (not (eq ptype python-mls-prompt-type))
 	  ;; inhibit change functions to or from 'unknown prompt type
-	  (let ((no-change (or (eq ptype 'unknown) (eq python-mls-prompt-type 'unknown))))
-	    (setq python-mls-prompt-type ptype)
-	    (unless no-change
-	      (run-hook-with-args 'python-mls-prompt-change-functions ptype))))
-	(unless (eq ptype 'unknown)
-	  (run-hooks 'python-mls-after-prompt-hook))))))
+	  (setq run-pcf (not (or (eq ptype 'unknown)
+				 (eq python-mls-prompt-type 'unknown)))
+		python-mls-prompt-type ptype))
+	(setq run-pa (not (eq ptype 'unknown)))
+	;; Run the hooks after comint-filter-function returns, so that
+	;; last-prompt etc. is already set
+	(if (or run-pcf run-pa)
+	    (run-at-time
+	     0 nil
+	     (lambda ()
+	       (if run-pcf
+		   (run-hook-with-args
+		    'python-mls-prompt-change-functions ptype))
+	       (if run-pa (run-hooks 'python-mls-after-prompt-hook)))))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation based on the text of PROMPT."
@@ -491,7 +500,7 @@ Kill buffer when PROCESS completes on EVENT."
     (define-key map [remap previous-line] #'python-mls-up-or-history)
     (define-key map [remap next-line] #'python-mls-down-or-history)
     (define-key map [remap python-shell-completion-complete-or-indent]
-      #'indent-for-tab-command) ; restore
+      #'indent-for-tab-command)		; restore
     (define-key map [(meta up)] #'comint-previous-matching-input-from-input)
     (define-key map [(meta down)] #'comint-next-matching-input-from-input)
     (define-key map (kbd "C-d") #'python-mls-delete-or-eof)
@@ -593,8 +602,8 @@ Used as :after advice for `comint-output-filter'."
 	(add-hook 'comint-input-filter-functions
 		  #'python-mls--strip-input-history-properties nil t)
 
-	;; We run this :after so that  `comint-last-prompt' is already set
-	(advice-add #'comint-output-filter :after #'python-mls-check-prompt)
+	;; prompt
+	(add-hook 'comint-output-filter-functions #'python-mls-check-prompt nil t)
 	(cursor-intangible-mode 1)
 
 	;; indentation
