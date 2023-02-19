@@ -31,6 +31,8 @@ Simply install python-MLS from this repository or MELPA, and use `require` or `u
   (inferior-python-mode . python-mls-mode))
 ```
 
+> **_NOTE:_** The `python-mls-setup` function is no longer necessary, and was removed in v0.2.
+
 You can start your shell however you normally do (e.g. `C-c C-p` in a Python buffer, or `M-x run-python`), and Python-MLS will activate.
 
 # Usage
