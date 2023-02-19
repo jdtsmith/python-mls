@@ -4,9 +4,9 @@
 
 ;; Author: J.D. Smith
 ;; Homepage: https://github.com/jdtsmith/python-mls
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "27.1") (compat "29.1")
 ;; Keywords: languages, processes
-;; Version: 0.1.7
+;; Version: 0.2.0
 
 ;;; Commentary:
 
@@ -19,12 +19,12 @@
 ;; - Accepts arbitrary multi-line command lengths.
 ;; - Auto-detects and handles native continuation prompts.
 ;; - Auto-indents multi-line commands.
-;; - Replaces buffer-based fontifications with in-buffer python-mode
-;;   fontification for dramatic speedup.
-;; - Up/Down arrow history browsing with and without block movement
-;;   (try shift arrow).
+;; - Replaces buffer-based code fontifications with in-buffer
+;;   python-mode fontification for dramatic speedup.
+;; - Up/Down arrow history browsing with and without movement within
+;;   block (try shift arrow).
 ;; - Saves and restore (multi-line) command history, separated per
-;;   buffer name.
+;;   shell buffer name.
 ;; - Directly kill/yank multi-line code blocks to & from Python
 ;;   buffers.
 
@@ -43,6 +43,7 @@
 
 ;;; Code:
 (require 'python)
+(require 'compat)
 
 (defgroup python-mls nil
   "Setup for command parameters of the Python Multi-Line Shell."
