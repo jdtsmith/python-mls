@@ -21,27 +21,30 @@ Python-MLS (multi-line shell) is an Emacs minor mode for working directly with m
   
 # Installation
 
-Simply install python-MLS from this repository or MELPA, and use `require` or `use-package` to load it.  To enable, arrange to have `python-mls-setup` called immediately after `python-mls` is loaded, e.g.:
+Simply install python-MLS from this repository or MELPA, and use `require` or `use-package` to load it.  To enable, arrange to have `python-mls-mode` called on the `inferior-python-mode` hook, e.g.:
 
 ```elisp
 (use-package python-mls
-	:after python
-	:config
-	(python-mls-setup))
+  ;; :custom
+  ;; (python-mls-multiline-history-modifier '(meta shift))
+  :hook
+  (inferior-python-mode . python-mls-mode))
 ```
 
-Python-MLS will then  automatically enable itself in your python inferior shell, which you can start however you normally do (e.g. `C-c C-p` in a Python buffer, or `M-x run-python`).  Note: if you use `:bind` in your use-package stanza, you should add `:defer nil` to ensure the setup is run as soon as `python.el` is loaded.
+You can start your shell however you normally do (e.g. `C-c C-p` in a Python buffer, or `M-x run-python`), and Python-MLS will activate.
 
 # Usage
 
-Using python-MLS is as simple as entering the first of a multi-line statement at the (i)Python prompt, then editing as you would in a python buffer.  Hit `S-Ret` or enter two final blank lines to execute. You can disable python-MLS for _future_ shells in one Emacs session with `M-x python-mls-mode` in an enabled shell buffer. 
+Using python-MLS is simple: just enter the first of a multi-line statement at the (i)Python prompt, then editing as you would in a python buffer.  Or hit `C-j` to "build your own" multi-line statement.  Hit `S-Ret` or enter two final blank lines to send to python.  Add shift to your up/down commands to skip through history multi-line blocks at a time. 
+
+You can disable python-MLS for _future_ shells in one Emacs session with `M-x python-mls-mode` in an enabled shell buffer. 
 
 # Keys
 
 - `Up`/`Down` (or `C-p`/`C-n`): when on the last line in that direction, navigate history, otherwise move _within_ multi-line statements. 
 -  `S-Up`/`S-Down` (or `C-S-p`/`C-S-n`): skip through multi-line statements in command history without navigating inside them.  To configure the modifier used, see `python-mls-multiline-history-modifier`. 
 - `S-Ret` or `M-Ret`: send a multi-line statement from anywhere within it.
--  Two blank lines at statement end: send the multi-line statement.
+-  `Ret` after _two_ blank lines at statement end: send the multi-line statement.
 - `C-j`: break an initial line into a multi-line command anywhere. 
 - `C-r`/`C-s`: Search backward/forward through command history. 
 - `M-a`/`M-e`/`C-M-u`: (by default) python-nav bindings for backward-, forward-block and up-list are brought over from python mode.  See `python-mls-import-python-nav-command-list` to add more. 
