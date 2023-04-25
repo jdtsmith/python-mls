@@ -330,7 +330,7 @@ possibility by examining their PTYPE argument. "
 	       (inhibit-read-only t))
 	  (let ((python-mls--check-prompt nil)) ; prevent reentry
 	    (funcall python-mls-interrupt-process-function process)) ; re-enters!
-	  (delete-region start pmark) ;out with the old
+	  (delete-region start pmark)	;out with the old
 	  (insert input)
 	  (funcall indent-line-function)
 	  (if (and comint-input-ring
@@ -344,8 +344,8 @@ possibility by examining their PTYPE argument. "
 			      'pdb)
 			     (t t))	; just a normal prompt
 		     'unknown)) ; likely a false prompt due to chunked output
-	    (python-mls--check-prompt nil)
-	    run-pcf run-pa)		; inhibit re-entry
+	    (python-mls--check-prompt nil) ; inhibit re-entry
+	    run-pcf run-pa)
 	(if (eq ptype t)
 	    (python-mls-compute-continuation-prompt (match-string 0)))
 	(unless (eq ptype 'unknown) 	; just ignore those
