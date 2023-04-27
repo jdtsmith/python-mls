@@ -338,39 +338,40 @@ possibility by examining their PTYPE argument."
 		   (not (ring-empty-p comint-input-ring)))
 	      (ring-remove comint-input-ring 0)))
       ;; All other prompts
-      (let ((ptype (if (looking-at python-mls-prompt-regexp)
-		       (cond ((< (match-end 0) (point-max)) 'unknown) ;; extra stuff
-			     ((string-match-p python-shell-prompt-pdb-regexp
-					      (match-string 0))
-			      'pdb)
-			     (t t))	; just a normal prompt
-		     'unknown)) ; likely a false prompt due to chunked output
-	    (python-mls--check-prompt nil) ; inhibit re-entry
-	    run-pcf run-pa)
-	(if (eq ptype t)
-	    (python-mls-compute-continuation-prompt (match-string 0)))
-	(unless (eq ptype 'unknown) 	; just ignore those
-	  (let ((inhibit-read-only t))
-	    (add-text-properties (line-beginning-position) (1- pmark)
-				 '(cursor-intangible t))))
-	(goto-char pmark)
-	(when (not (eq ptype python-mls-prompt-type))
-	  ;; inhibit change functions to or from 'unknown prompt type
-	  (setq run-pcf (not (or (eq ptype 'unknown)
-				 (eq python-mls-prompt-type 'unknown)))
-		python-mls-prompt-type ptype))
-	(setq run-pa (not (eq ptype 'unknown)))
-	;; Run the hooks after comint-filter-function returns, so that
-	;; last-prompt etc. is already set
-	(if (or run-pcf run-pa)
-	    (run-at-time
-	     0 nil
-	     (lambda ()
-	       (with-current-buffer buf
-		 (if run-pcf
-		     (run-hook-with-args
-		      'python-mls-prompt-change-functions ptype))
-		 (if run-pa (run-hooks 'python-mls-after-prompt-hook))))))))))
+      (unless (string-empty-p output) 	; disregard the call from comint-send-input
+	(let ((ptype (if (looking-at python-mls-prompt-regexp)
+			 (cond ((< (match-end 0) (point-max)) 'unknown) ;; extra stuff
+			       ((string-match-p python-shell-prompt-pdb-regexp
+						(match-string 0))
+				'pdb)
+			       (t t))	; just a normal prompt
+		       'unknown)) ; likely a false prompt due to chunked output
+	      (python-mls--check-prompt nil) ; inhibit re-entry
+	      run-pcf run-pa)
+	  (if (eq ptype t)
+	      (python-mls-compute-continuation-prompt (match-string 0)))
+	  (unless (eq ptype 'unknown) 	; just ignore those
+	    (let ((inhibit-read-only t))
+	      (add-text-properties (line-beginning-position) (1- pmark)
+				   '(cursor-intangible t))))
+	  (goto-char pmark)
+	  (when (not (eq ptype python-mls-prompt-type))
+	    ;; inhibit change functions to or from 'unknown prompt type
+	    (setq run-pcf (not (or (eq ptype 'unknown)
+				   (eq python-mls-prompt-type 'unknown)))
+		  python-mls-prompt-type ptype))
+	  (setq run-pa (not (eq ptype 'unknown)))
+	  ;; Run the hooks after comint-filter-function returns, so that
+	  ;; last-prompt etc. is already set
+	  (if (or run-pcf run-pa)
+	      (run-at-time
+	       0 nil
+	       (lambda ()
+		 (with-current-buffer buf
+		   (if run-pcf
+		       (run-hook-with-args
+			'python-mls-prompt-change-functions ptype))
+		   (if run-pa (run-hooks 'python-mls-after-prompt-hook)))))))))))
 
 (defun python-mls-compute-continuation-prompt (prompt)
   "Compute a prompt to use for continuation based on the text of PROMPT."
