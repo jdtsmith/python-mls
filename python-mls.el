@@ -139,9 +139,10 @@ after the output field will be trimmed."
   "Indent line, narrowing to region after prompt if in continuation.
 If the line is at the end of the buffer, insert an invisible
 newline to allow for a prefix prompt."
-  (if-let ((end (cdr-safe comint-last-prompt)))
+  (if-let ((proc (get-buffer-process (current-buffer)))
+	   (pmark (process-mark proc)))
       (save-restriction
-	(narrow-to-region end (point-max))
+	(narrow-to-region pmark (point-max))
 	(python-indent-line-function))
     (python-indent-line-function))
   (if (= (line-beginning-position) (point-max))
@@ -305,7 +306,7 @@ chunks.  This is because comint is configured to mark any text
 not ending in a newline as a prompt, and has no way of knowing
 whether all of the output is yet received.  Any hook functions on
 `python-mls-prompt-change-functions' should guard against this
-possibility by examining their PTYPE argument. "
+possibility by examining their PTYPE argument."
   (when-let ((python-mls--check-prompt)
 	     (buf (current-buffer))
 	     (process (get-buffer-process buf))
