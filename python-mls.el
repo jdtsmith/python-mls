@@ -546,6 +546,8 @@ Used as :after advice for `comint-output-filter'."
   (make-local-variable 'yank-excluded-properties) ; for python-mls
   (cl-pushnew 'line-prefix yank-excluded-properties))
 
+(add-hook 'python-mode-hook #'python-mls-python-setup)
+
 (make-obsolete 'python-mls-setup 'python-mls-mode ">v0.2")
 
 ;;;###autoload
@@ -554,7 +556,6 @@ Used as :after advice for `comint-output-filter'."
   :keymap python-mls-mode-map
   (if python-mls-mode
       (progn
-	(add-hook 'python-mode-hook #'python-mls-python-setup)
 	
 	;; input matcher
 	(unless python-mls-prompt-regexp
