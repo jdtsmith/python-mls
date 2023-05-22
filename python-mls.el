@@ -454,6 +454,7 @@ With VERBOSE print fontification status messages."
 	   (pmark (process-mark process)))
       (if (> end pmark)
 	  (let ((font-lock-keywords python-mls-font-lock-keywords)
+		(font-lock-keywords-only nil)
 		(font-lock-syntactic-face-function
 		 #'python-font-lock-syntactic-face-function)
 		(font-lock-dont-widen t)
