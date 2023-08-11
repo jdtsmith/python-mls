@@ -208,7 +208,7 @@ Omits extra newlines at end, and preserves (some) text properties."
       (funcall indent-line-function)))) ; NO completion please
 
 (defun python-mls--strip-input-history-properties (_str)
-  "Remove 'line-prefix properties from the just-added comint history."
+  "Remove line-prefix properties from the just-added comint history."
   (if (and comint-input-ring
 	   (not (ring-empty-p comint-input-ring)))
       (let ((last (ring-ref comint-input-ring 0)))
@@ -265,7 +265,7 @@ Use PROCESS if it is set."
 
 (defun python-mls-invisible-newline ()
   "Insert an invisible, cursor-intangible newline without moving point.
-Since continuation prompts use 'line-prefix property, and the
+Since continuation prompts use line-prefix property, and the
 line after a final newline is entirely empty, it has no prompt.
 To solve this we keep an invisible and intangible newline at the
 end of the buffer."
@@ -281,8 +281,8 @@ end of the buffer."
   "Last prompt before recent send.")
 (defvar-local python-mls-prompt-type nil
   "The type of prompt.
-Can be t for normal input prompts, 'pdb for a (i)PDB prompt, or
-'unknown for all others.")
+Can be t for normal input prompts, pdb for a (i)PDB prompt, or
+unknown for all others.")
 
 ;;;###autoload
 (defun python-mls-check-prompt (output)
@@ -300,8 +300,8 @@ When the prompt type changes, run the hooks in
 argument).  Run the hooks in `python-mls-after-prompt-hook' each
 time a known prompt type is detected.  Note that an unknown
 prompt type could correspond either to a real non-standard
-prompt (e.g. from a python call to input()) or to a 'false
-prompt', which may appear if the process produces output in
+prompt (e.g. from a python call to input()) or to a \"false
+prompt\", which may appear if the process produces output in
 chunks.  This is because comint is configured to mark any text
 not ending in a newline as a prompt, and has no way of knowing
 whether all of the output is yet received.  Any hook functions on
