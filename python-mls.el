@@ -547,8 +547,11 @@ Used as :after advice for `comint-output-filter'."
   (make-local-variable 'yank-excluded-properties) ; for python-mls
   (cl-pushnew 'line-prefix yank-excluded-properties))
 
-(add-hook 'python-mode-hook #'python-mls-python-setup)
-
+;; Emacs 29 tree-sitter mode abstracts out a python-base-mode
+(add-hook (if (boundp 'python-base-mode-hook)
+	      'python-base-mode-hook
+	    'python-mode-hook)
+	  #'python-mls-python-setup)
 (make-obsolete 'python-mls-setup 'python-mls-mode ">v0.2")
 
 ;;;###autoload
