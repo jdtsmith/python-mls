@@ -339,13 +339,16 @@ possibility by examining their PTYPE argument."
 	      (ring-remove comint-input-ring 0)))
       ;; All other prompts
       (unless (string-empty-p output) 	; disregard the call from comint-send-input
-	(let ((ptype (if (looking-at python-mls-prompt-regexp)
-			 (cond ((< (match-end 0) (point-max)) 'unknown) ;; extra stuff
-			       ((string-match-p python-shell-prompt-pdb-regexp
-						(match-string 0))
-				'pdb)
-			       (t t))	; just a normal prompt
-		       'unknown)) ; likely a false prompt due to chunked output
+	(let ((ptype
+	       (cond
+		((not (looking-at python-mls-prompt-regexp)) 'unknown)
+		((and (< (match-end 0) (point-max))
+		      (not (string-suffix-p (match-string 0) output)))
+		 'unknown) ;; extra stuff, not preexisting input
+		((string-match-p python-shell-prompt-pdb-regexp
+				 (match-string 0))
+		 'pdb)
+		(t t))) ; likely a false prompt due to chunked output
 	      (python-mls--check-prompt nil) ; inhibit re-entry
 	      run-pcf run-pa)
 	  (if (eq ptype t)
@@ -560,7 +563,6 @@ Used as :after advice for `comint-output-filter'."
   :keymap python-mls-mode-map
   (if python-mls-mode
       (progn
-	
 	;; input matcher
 	(unless python-mls-prompt-regexp
 	  (setq-local python-mls-prompt-regexp
