@@ -6,7 +6,7 @@
 ;; Homepage: https://github.com/jdtsmith/python-mls
 ;; Package-Requires: ((emacs "27.1") (compat "29.1"))
 ;; Keywords: languages, processes
-;; Version: 0.2.1
+;; Version: 0.2.2
 
 ;;; Commentary:
 
