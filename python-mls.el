@@ -620,7 +620,9 @@ Used as :after advice for `comint-output-filter'."
 
 	;; indentation
 	(electric-indent-local-mode -1) ; We handle [Ret] indentation ourselves
-	(setq-local indent-line-function #'python-mls--indent-line)
+	(setq-local
+	 indent-tabs-mode nil
+	 indent-line-function #'python-mls--indent-line)
 	(add-hook 'python-mls-after-prompt-hook
 		  #'python-mls-strip-last-output-read-only -95 t))
     (remove-hook 'python-mode-hook #'python-mls-python-setup)
