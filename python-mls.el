@@ -410,6 +410,7 @@ non-nil.  Also move normally inside of continued commands, unless
 NOCONT-MOVE is non-nil."
   (interactive)
   (let* ((prompt (process-mark (get-buffer-process (current-buffer))))
+	 (line-move-visual nil)
 	 (arg (or arg 1))
 	 (arg (if up arg (- arg))))
     (if (and prompt
@@ -423,9 +424,7 @@ NOCONT-MOVE is non-nil."
 			 (skip-chars-backward "\r\n" (1- (point)))
 			 (line-number-at-pos))))))
 	(comint-previous-input arg)
-      (line-move (- arg))
-      ;; If we snuck behind the prompt, jump to it
-      (if (< (point) prompt) (goto-char prompt)))))
+      (line-move (- arg)))))
 
 (defun python-mls-up-or-history (&optional arg)
   "When in last line of process buffer, move to previous input.
