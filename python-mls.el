@@ -55,6 +55,10 @@
 The file `python-mls-command-history-file' is used to save and restore
 the history."
   :type 'boolean)
+
+(defcustom python-mls-check-prompt t
+  "Whether to check the prompt and update the `python-mls-prompt-type' variable."
+  :local t
   :type 'boolean)
 
 (defcustom python-mls-command-history-file "pyhist"
@@ -607,7 +611,8 @@ Used as :after advice for `comint-output-filter'."
 		  #'python-mls--strip-input-history-properties nil t)
 
 	;; prompt
-	(add-hook 'comint-output-filter-functions #'python-mls-check-prompt nil t)
+	(when python-mls-check-prompt
+	  (add-hook 'comint-output-filter-functions #'python-mls-check-prompt nil t))
 	(cursor-intangible-mode 1)
 
 	;; indentation
