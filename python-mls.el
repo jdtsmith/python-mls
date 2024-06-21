@@ -54,7 +54,7 @@
   "Non-nil means preserve command history between sessions.
 The file `python-mls-command-history-file' is used to save and restore
 the history."
-  :group 'python-mls
+  :type 'boolean)
   :type 'boolean)
 
 (defcustom python-mls-command-history-file "pyhist"
@@ -64,18 +64,15 @@ by appending -`python-shell-buffer-name' to this value, within
 `user-emacs-directory'.  To change the size of the history ring,
 see the variable `comint-input-ring-size'.  History is only saved
 if the variable `python-mls-save-command-history' is non-nil."
-  :group 'python-mls
   :type 'file)
 
 (defcustom python-mls-kill-buffer-process-quit nil
   "Whether to kill the python buffer when the process completes."
-  :group 'python-mls
   :type 'boolean)
 
 (defcustom python-mls-multiline-history-modifier '(shift)
   "Modifier key for up/down arrow multi-line history navigation.
 List of symbols, or nil to disable."
-  :group 'python-mls
   :type '(choice (const :tag "None" nil) (repeat :tag "List of modifiers" symbol)))
 
 (defcustom python-mls-import-python-nav-command-list
@@ -86,26 +83,22 @@ List of symbols, or nil to disable."
 Limited to region after prompt.  Binds in the inferior shell with
 the same key or (if provided as a cons cell (function . key) to
 KEY."
-  :group 'python-mls
   :type '(repeat (choice function (cons function key-sequence))))
 
 (defcustom python-mls-prompt-regexp nil
   "The prompt regular expression to match input and pdb prompts.
 Defaults to `python-shell--prompt-calculated-input-regexp'."
-  :group 'python-mls
   :type '(choice (const :tag "Default" nil) regexp)
   :local t)
 
 (defcustom python-mls-prompt-change-functions nil
   "A list of functions to run when the prompt type changes.
 Each function should take a single argument -- the prompt type (a symbol)."
-  :group 'python-mls
   :type 'hook
   :local t)
 
 (defcustom python-mls-sentinel-hooks nil
   "Hooks to run when the process dies, before saving history."
-  :group 'python-mls
   :type 'hook
   :local t)
 
