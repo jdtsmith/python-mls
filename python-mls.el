@@ -124,7 +124,7 @@ after the output field will be trimmed."
     (and (not (eq (field-at-pos (point)) 'output))
 	 (> (save-excursion
 	      (goto-char (field-end))
-	      (skip-chars-backward "[:space:]\n\r")
+	      (skip-chars-backward " \t\n\r")
 	      (prog1 (line-number-at-pos)
 		(when trim-trailing-ws
 		  (if (eq (field-at-pos (point)) 'output) ;no space in prompt
