@@ -262,7 +262,7 @@ Use PROCESS if it is set."
 
 (defun python-mls-invisible-newline ()
   "Insert an invisible, cursor-intangible newline without moving point.
-Since continuation prompts use line-prefix property, and the
+Since continuation prompts use `line-prefix' property, and the
 line after a final newline is entirely empty, it has no prompt.
 To solve this we keep an invisible and intangible newline at the
 end of the buffer."
